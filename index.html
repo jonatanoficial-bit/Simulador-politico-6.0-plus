@@ -1,81 +1,165 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Simulador Político 6.0 Plus</title>
-  <!-- Fonts for headings and body text -->
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
-  <!-- Main stylesheet -->
-  <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Simulador Político 6.0 Plus</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <!-- Start screen introduces the game -->
-  <div id="start-screen" class="screen active">
-    <div class="card">
-      <h1>Simulador Político 6.0 Plus</h1>
-      <p>Viva a experiência da política brasileira de forma realista.</p>
-      <button class="button" id="start-btn">Iniciar</button>
-    </div>
-  </div>
-
-  <!-- Party and name selection screen -->
-  <div id="selection-screen" class="screen">
-    <div class="card">
-      <h2>Escolha seu partido</h2>
-      <div id="party-grid" class="party-grid"></div>
-      <div class="input-group">
-        <label for="candidate-name">Seu nome</label>
-        <input type="text" id="candidate-name" placeholder="Digite seu nome">
+  <!-- TELA DE CAPA -->
+  <section id="start-screen" class="screen active">
+    <div class="screen-overlay"></div>
+    <div class="card start-card">
+      <h1>Simulador Político 6.0 Plus</h1>
+      <p class="subtitle">
+        Viva a experiência da política brasileira de forma realista.
+      </p>
+      <div class="start-buttons">
+        <button id="new-game-btn" class="btn primary">Novo jogo</button>
+        <button id="continue-btn" class="btn secondary" style="display:none;">
+          Continuar jogo
+        </button>
       </div>
-      <button class="button" id="confirm-selection">Confirmar</button>
     </div>
-  </div>
+  </section>
 
-  <!-- Main game screen where actions take place -->
-  <div id="game-screen" class="screen">
-    <div id="header">
-      <div id="player-info"></div>
-      <div id="stats-info"></div>
-      <div id="office-info"></div>
+  <!-- TELA DE SELEÇÃO DE PARTIDO / NOME -->
+  <section id="selection-screen" class="screen">
+    <div class="card selection-card">
+      <h2>Escolha seu partido</h2>
+
+      <div id="party-list" class="party-list">
+        <!-- Preenchido pelo JS -->
+      </div>
+
+      <div class="field">
+        <label for="player-name">Seu nome</label>
+        <input id="player-name" type="text" placeholder="Digite seu nome" />
+      </div>
+
+      <div class="selection-actions">
+        <button id="confirm-selection-btn" class="btn primary">
+          Confirmar
+        </button>
+        <button id="back-to-start-btn" class="btn ghost">
+          Voltar
+        </button>
+      </div>
     </div>
-    <div id="actions"></div>
-    <div id="feed"></div>
-  </div>
+  </section>
 
-  <!-- Generic modal for in‑game decisions -->
-  <div id="modal-overlay" class="modal-overlay">
-    <div class="modal" id="modal-box">
+  <!-- TELA PRINCIPAL DO JOGO -->
+  <section id="game-screen" class="screen">
+    <div class="screen-overlay game-overlay"></div>
+
+    <div class="game-container">
+      <header class="game-header">
+        <div class="player-info">
+          <span id="player-info-text"></span>
+          <span id="office-text"></span>
+        </div>
+        <div class="stats">
+          <span>Popularidade: <strong id="stat-popularity">0</strong>%</span>
+          <span>Fundos: <strong id="stat-funds">0</strong></span>
+          <span>Integridade: <strong id="stat-integrity">0</strong>%</span>
+        </div>
+        <div class="header-actions">
+          <button id="reset-btn" class="btn small ghost">
+            Novo jogo
+          </button>
+        </div>
+      </header>
+
+      <main class="game-main">
+        <div id="actions" class="actions"></div>
+
+        <section id="feed" class="feed">
+          <!-- Log do jogo -->
+        </section>
+      </main>
+    </div>
+  </section>
+
+  <!-- TELA DE ELEIÇÃO / URNA -->
+  <section id="election-screen" class="screen">
+    <div class="election-bg"></div>
+
+    <div class="card election-card">
+      <h2 id="election-title">Contagem de votos</h2>
+      <p id="election-subtitle">Apuração dos votos em andamento...</p>
+
+      <div class="vote-bars">
+        <div class="vote-bar">
+          <span class="label">Você</span>
+          <div class="bar-outer">
+            <div id="candidate-bar" class="bar-inner"></div>
+          </div>
+          <span id="candidate-percent" class="percent-label">0%</span>
+        </div>
+        <div class="vote-bar">
+          <span class="label">Oponente</span>
+          <div class="bar-outer">
+            <div id="opponent-bar" class="bar-inner opponent"></div>
+          </div>
+          <span id="opponent-percent" class="percent-label">0%</span>
+        </div>
+      </div>
+
+      <p id="election-result-text" class="result-text"></p>
+
+      <button id="election-continue-btn" class="btn primary" disabled>
+        Continuar
+      </button>
+    </div>
+  </section>
+
+  <!-- MODAL GENÉRICO -->
+  <div id="modal-overlay" class="overlay hidden">
+    <div class="overlay-backdrop"></div>
+    <div class="card modal-card">
       <h3 id="modal-title"></h3>
       <p id="modal-text"></p>
-      <div id="modal-buttons"></div>
-    </div>
-  </div>
-
-  <!-- Campaign planning overlay shown before elections -->
-  <div id="campaign-overlay" class="modal-overlay">
-    <div class="modal" id="campaign-box">
-      <h3>Planejar campanha</h3>
-      <p>Escolha o tom do discurso e o principal tema da campanha:</p>
-      <div id="campaign-options"></div>
-      <div style="margin-top:1rem; display:flex; justify-content:flex-end; gap:0.5rem;">
-        <button class="button" id="campaign-start">Iniciar campanha</button>
-        <button class="button" id="campaign-cancel">Cancelar</button>
+      <div id="modal-options" class="modal-options">
+        <!-- Botões criados via JS -->
       </div>
     </div>
   </div>
 
-  <!-- Election screen simulates vote counting -->
-  <div id="election-screen" class="screen">
-    <div id="election-content">
-      <h2 id="election-title"></h2>
-      <div id="vote-bars"></div>
-      <p id="election-result"></p>
-      <button class="button" id="election-continue">Continuar</button>
+  <!-- MODAL DE CAMPANHA -->
+  <div id="campaign-overlay" class="overlay hidden">
+    <div class="overlay-backdrop"></div>
+    <div class="card modal-card">
+      <h3>Planejar campanha</h3>
+      <p class="small-text">
+        Escolha o tom do discurso e o principal tema da campanha:
+      </p>
+
+      <div class="campaign-section">
+        <h4>Tom do discurso</h4>
+        <div id="tone-options" class="chip-group">
+          <!-- via JS -->
+        </div>
+      </div>
+
+      <div class="campaign-section">
+        <h4>Tema principal</h4>
+        <div id="theme-options" class="chip-group">
+          <!-- via JS -->
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <button id="start-campaign-btn" class="btn primary">
+          Iniciar campanha
+        </button>
+        <button id="cancel-campaign-btn" class="btn ghost">
+          Cancelar
+        </button>
+      </div>
     </div>
   </div>
 
-  <!-- Game logic -->
   <script src="script.js"></script>
 </body>
 </html>

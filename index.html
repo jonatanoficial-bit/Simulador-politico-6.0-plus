@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Simulador Político 6.0 Plus</title>
+  <!-- Fonts for headings and body text -->
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+  <!-- Main stylesheet -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Start screen introduces the game -->
+  <div id="start-screen" class="screen active">
+    <div class="card">
+      <h1>Simulador Político 6.0 Plus</h1>
+      <p>Viva a experiência da política brasileira de forma realista.</p>
+      <button class="button" id="start-btn">Iniciar</button>
+    </div>
+  </div>
+
+  <!-- Party and name selection screen -->
+  <div id="selection-screen" class="screen">
+    <div class="card">
+      <h2>Escolha seu partido</h2>
+      <div id="party-grid" class="party-grid"></div>
+      <div class="input-group">
+        <label for="candidate-name">Seu nome</label>
+        <input type="text" id="candidate-name" placeholder="Digite seu nome">
+      </div>
+      <button class="button" id="confirm-selection">Confirmar</button>
+    </div>
+  </div>
+
+  <!-- Main game screen where actions take place -->
+  <div id="game-screen" class="screen">
+    <div id="header">
+      <div id="player-info"></div>
+      <div id="stats-info"></div>
+      <div id="office-info"></div>
+    </div>
+    <div id="actions"></div>
+    <div id="feed"></div>
+  </div>
+
+  <!-- Generic modal for in‑game decisions -->
+  <div id="modal-overlay" class="modal-overlay">
+    <div class="modal" id="modal-box">
+      <h3 id="modal-title"></h3>
+      <p id="modal-text"></p>
+      <div id="modal-buttons"></div>
+    </div>
+  </div>
+
+  <!-- Campaign planning overlay shown before elections -->
+  <div id="campaign-overlay" class="modal-overlay">
+    <div class="modal" id="campaign-box">
+      <h3>Planejar campanha</h3>
+      <p>Escolha o tom do discurso e o principal tema da campanha:</p>
+      <div id="campaign-options"></div>
+      <div style="margin-top:1rem; display:flex; justify-content:flex-end; gap:0.5rem;">
+        <button class="button" id="campaign-start">Iniciar campanha</button>
+        <button class="button" id="campaign-cancel">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Election screen simulates vote counting -->
+  <div id="election-screen" class="screen">
+    <div id="election-content">
+      <h2 id="election-title"></h2>
+      <div id="vote-bars"></div>
+      <p id="election-result"></p>
+      <button class="button" id="election-continue">Continuar</button>
+    </div>
+  </div>
+
+  <!-- Game logic -->
+  <script src="script.js"></script>
+</body>
+</html>

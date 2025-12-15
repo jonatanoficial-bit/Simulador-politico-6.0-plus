@@ -1,4 +1,4 @@
-const STORAGE_KEY = "simuladorPoliticoSave_v8_agenda";
+const STORAGE_KEY = "simuladorPoliticoSave_v9_calendar_news";
 
 // ===============================
 // ESTADO
@@ -34,6 +34,14 @@ let state = {
   // ETAPA 2
   activeProjects: [],     // [{ id, startedAt:{week,year}, totalWeeks, weeksLeft, stalledWeeks, status }]
   completedProjects: [],  // [id]
+
+  // ETAPA 3
+  news: [],               // [{ id, week, year, title, subtitle, tone, tags:[], impact:{...} }]
+  unreadNews: 0,
+  calendar: {
+    electionCycleWeeks: 16, // a cada 16 semanas existe “janela eleitoral”
+    nextElection: { week: 16, year: 2025 }, // recalculado no init
+  },
 
   timeline: [],
 };
@@ -185,7 +193,7 @@ const projectCatalog = [
 ];
 
 // ===============================
-// ELEMENTOS
+// ELEMENTOS (DOM)
 // ===============================
 const screens = {
   start: document.getElementById("start-screen"),
@@ -275,6 +283,153 @@ const agendaRefreshBtn = document.getElementById("agenda-refresh-btn");
 const agendaSubtitle = document.getElementById("agenda-subtitle");
 
 // ===============================
+// ETAPA 3: UI DINÂMICA (Calendário + Imprensa)
+// (cria botões/overlays se não existirem no HTML)
+// ===============================
+let pressBtn = null;
+let calendarBtn = null;
+let pressOverlay = null;
+let calendarOverlay = null;
+
+function injectEtapa3UI() {
+  // CSS mínimo AAA para overlays/ticker (sem mexer no seu style.css)
+  const css = `
+  .et3-fabbar{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
+  .et3-btn{border:1px solid rgba(255,255,255,.18);background:rgba(0,0,0,.35);color:#fff;padding:10px 12px;border-radius:12px;cursor:pointer;backdrop-filter: blur(6px);font-weight:700}
+  .et3-btn:hover{transform: translateY(-1px)}
+  .et3-badge{display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:22px;padding:0 8px;border-radius:999px;margin-left:8px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.18);font-size:12px}
+  .et3-badge.hot{background:rgba(255,80,80,.18);border-color:rgba(255,80,80,.35)}
+  .et3-overlay{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.55);z-index:9999}
+  .et3-panel{width:min(980px,92vw);height:min(78vh,720px);background:rgba(8,10,14,.92);border:1px solid rgba(255,255,255,.14);border-radius:18px;box-shadow:0 16px 80px rgba(0,0,0,.55);overflow:hidden;display:flex;flex-direction:column}
+  .et3-head{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid rgba(255,255,255,.12)}
+  .et3-head h3{margin:0;font-size:16px;letter-spacing:.4px}
+  .et3-close{background:transparent;color:#fff;border:1px solid rgba(255,255,255,.18);border-radius:12px;padding:8px 10px;cursor:pointer}
+  .et3-body{padding:12px 14px;overflow:auto;display:grid;grid-template-columns: 1.3fr .7fr;gap:12px}
+  .et3-card{border:1px solid rgba(255,255,255,.12);border-radius:16px;background:rgba(255,255,255,.04);padding:12px}
+  .et3-card h4{margin:0 0 10px 0;font-size:14px}
+  .et3-newsitem{padding:10px;border:1px solid rgba(255,255,255,.10);border-radius:14px;background:rgba(0,0,0,.25);margin-bottom:10px}
+  .et3-newsitem strong{display:block;font-size:13px;margin-bottom:4px}
+  .et3-sub{opacity:.85;font-size:12px;line-height:1.35}
+  .et3-meta{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+  .et3-tag{font-size:11px;padding:4px 8px;border-radius:999px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.06);opacity:.9}
+  .et3-tone.good{border-color:rgba(80,220,120,.28);background:rgba(80,220,120,.10)}
+  .et3-tone.bad{border-color:rgba(255,80,80,.28);background:rgba(255,80,80,.10)}
+  .et3-tone.neutral{border-color:rgba(255,220,120,.22);background:rgba(255,220,120,.08)}
+  .et3-kpi{display:flex;flex-direction:column;gap:8px}
+  .et3-row{display:flex;justify-content:space-between;gap:10px;font-size:12px;opacity:.92}
+  .et3-row span:last-child{font-weight:800}
+  .et3-ticker{margin-top:10px;padding:10px 12px;border-radius:14px;border:1px solid rgba(255,255,255,.12);background:rgba(0,0,0,.22);font-size:12px;line-height:1.35}
+  `;
+  if (!document.getElementById("etapa3-style")) {
+    const styleTag = document.createElement("style");
+    styleTag.id = "etapa3-style";
+    styleTag.textContent = css;
+    document.head.appendChild(styleTag);
+  }
+
+  // cria barra de botões no game
+  if (!document.getElementById("et3-fabbar")) {
+    const anchor = actionsDiv?.parentElement || gameScreen;
+    const bar = document.createElement("div");
+    bar.className = "et3-fabbar";
+    bar.id = "et3-fabbar";
+
+    calendarBtn = document.createElement("button");
+    calendarBtn.className = "et3-btn";
+    calendarBtn.id = "calendar-btn";
+    calendarBtn.textContent = "Calendário";
+
+    pressBtn = document.createElement("button");
+    pressBtn.className = "et3-btn";
+    pressBtn.id = "press-btn";
+    pressBtn.innerHTML = `Imprensa <span id="press-badge" class="et3-badge">0</span>`;
+
+    bar.appendChild(calendarBtn);
+    bar.appendChild(pressBtn);
+
+    if (anchor) anchor.appendChild(bar);
+  } else {
+    pressBtn = document.getElementById("press-btn");
+    calendarBtn = document.getElementById("calendar-btn");
+  }
+
+  // overlay imprensa
+  if (!document.getElementById("press-overlay")) {
+    pressOverlay = document.createElement("div");
+    pressOverlay.className = "et3-overlay";
+    pressOverlay.id = "press-overlay";
+    pressOverlay.style.display = "none";
+    pressOverlay.innerHTML = `
+      <div class="et3-panel">
+        <div class="et3-head">
+          <h3>Sala de Imprensa</h3>
+          <button class="et3-close" id="press-close">Fechar</button>
+        </div>
+        <div class="et3-body">
+          <div class="et3-card">
+            <h4>Manchetes</h4>
+            <div id="press-list"></div>
+          </div>
+          <div class="et3-card">
+            <h4>Resumo de narrativa</h4>
+            <div class="et3-kpi" id="press-summary"></div>
+            <div class="et3-ticker" id="press-ticker">Sem manchetes recentes.</div>
+          </div>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(pressOverlay);
+  } else {
+    pressOverlay = document.getElementById("press-overlay");
+  }
+
+  // overlay calendário
+  if (!document.getElementById("calendar-overlay")) {
+    calendarOverlay = document.createElement("div");
+    calendarOverlay.className = "et3-overlay";
+    calendarOverlay.id = "calendar-overlay";
+    calendarOverlay.style.display = "none";
+    calendarOverlay.innerHTML = `
+      <div class="et3-panel">
+        <div class="et3-head">
+          <h3>Calendário Político</h3>
+          <button class="et3-close" id="calendar-close">Fechar</button>
+        </div>
+        <div class="et3-body">
+          <div class="et3-card">
+            <h4>Próximos marcos</h4>
+            <div id="calendar-milestones"></div>
+          </div>
+          <div class="et3-card">
+            <h4>Projetos e prazos</h4>
+            <div id="calendar-projects"></div>
+          </div>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(calendarOverlay);
+  } else {
+    calendarOverlay = document.getElementById("calendar-overlay");
+  }
+
+  // bind eventos
+  if (pressBtn) pressBtn.addEventListener("click", () => openPress());
+  if (calendarBtn) calendarBtn.addEventListener("click", () => openCalendar());
+
+  const pressClose = document.getElementById("press-close");
+  if (pressClose) pressClose.addEventListener("click", () => closePress());
+  const calendarClose = document.getElementById("calendar-close");
+  if (calendarClose) calendarClose.addEventListener("click", () => closeCalendar());
+
+  if (pressOverlay) {
+    pressOverlay.addEventListener("click", (e) => { if (e.target === pressOverlay) closePress(); });
+  }
+  if (calendarOverlay) {
+    calendarOverlay.addEventListener("click", (e) => { if (e.target === calendarOverlay) closeCalendar(); });
+  }
+}
+
+// ===============================
 // UTIL
 // ===============================
 function clamp(v, min = 0, max = 100) { return Math.max(min, Math.min(max, v)); }
@@ -285,6 +440,15 @@ function currentOffice() { return offices[state.officeIndex]; }
 function isProjectActive(id) { return state.activeProjects.some(p => p.id === id); }
 function isProjectCompleted(id) { return state.completedProjects.includes(id); }
 function getProjectDef(id) { return projectCatalog.find(p => p.id === id) || null; }
+function uid() { return `${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`; }
+
+function weeksToDate(from, to) {
+  // retorna diferença aproximada em semanas no mesmo ano/ciclo, sem calendário real
+  // (suficiente para “prazo narrativo”)
+  const a = from.year * 52 + from.week;
+  const b = to.year * 52 + to.week;
+  return Math.max(0, b - a);
+}
 
 // ===============================
 // TELAS
@@ -315,12 +479,19 @@ function loadGame() {
       groups: { ...state.groups, ...(parsed.groups || {}) },
       activeProjects: Array.isArray(parsed.activeProjects) ? parsed.activeProjects : [],
       completedProjects: Array.isArray(parsed.completedProjects) ? parsed.completedProjects : [],
+      news: Array.isArray(parsed.news) ? parsed.news : [],
+      unreadNews: Number.isFinite(parsed.unreadNews) ? parsed.unreadNews : 0,
+      calendar: { ...state.calendar, ...(parsed.calendar || {}) },
     };
 
     if (parsed.party?.id) {
       const p = parties.find((x) => x.id === parsed.party.id) || parsed.party;
       state.party = p;
     }
+
+    // garante nextElection coerente
+    recalcNextElectionIfNeeded();
+
     return state;
   } catch (e) {
     console.error("Erro ao carregar save:", e);
@@ -395,6 +566,13 @@ function setMeter(fillEl, valEl, value, isDanger = false) {
   }
 }
 
+function updatePressBadge() {
+  const badge = document.getElementById("press-badge");
+  if (!badge) return;
+  badge.textContent = String(state.unreadNews || 0);
+  badge.classList.toggle("hot", (state.unreadNews || 0) > 0);
+}
+
 function renderHUD() {
   setMeter(meter.congress, meter.congressVal, state.congressSupport);
   setMeter(meter.media, meter.mediaVal, state.mediaTone);
@@ -414,24 +592,25 @@ function renderHUD() {
     else groupEls[k].bar.style.background = "var(--success)";
   });
 
-  // Pill de projetos ativos
   if (hudProjectPill) {
     const activeCount = state.activeProjects.length;
     hudProjectPill.textContent = `Projetos: ${activeCount}`;
   }
 
-  // dicas rápidas
+  // dicas rápidas + contagem até eleição (ETAPA 3)
   const tips = [];
-  if (state.congressSupport < 45) tips.push("Apoio no Congresso baixo: articule alianças.");
-  if (state.mediaTone < 45) tips.push("Mídia hostil: use transparência e discurso técnico.");
-  if (state.scandals > 55) tips.push("Escândalo alto: projetos podem travar. Aumente integridade.");
-  if (state.economy < 45) tips.push("Economia fraca: plano econômico pode ajudar.");
-  if (hudNote) hudNote.textContent = tips.length ? tips.join(" ") : "Situação estável. Use a Agenda para projetos de impacto.";
+  if (state.congressSupport < 45) tips.push("Congresso baixo: articule alianças.");
+  if (state.mediaTone < 45) tips.push("Mídia hostil: transparência/competência.");
+  if (state.scandals > 55) tips.push("Escândalo alto: risco de travar projetos.");
+  if (state.economy < 45) tips.push("Economia fraca: estímulo pode ajudar.");
+  const weeksLeftToElection = weeksToDate({ week: state.week, year: state.year }, state.calendar.nextElection);
+  tips.push(`Próxima janela eleitoral em ~${weeksLeftToElection} semana(s).`);
+
+  if (hudNote) hudNote.textContent = tips.join(" ");
+
+  updatePressBadge();
 }
 
-// ===============================
-// HEADER
-// ===============================
 function updateHeader() {
   recomputePopularity();
   syncOfficeVisual();
@@ -465,29 +644,18 @@ function openModal(title, text, options = []) {
   });
   modalOverlay.classList.remove("hidden");
 }
-
-function closeModal() {
-  modalOverlay.classList.add("hidden");
-}
+function closeModal() { modalOverlay.classList.add("hidden"); }
 
 // ===============================
 // AGENDA (ETAPA 2)
 // ===============================
-function openAgenda() {
-  renderAgenda();
-  agendaOverlay.classList.remove("hidden");
-}
-
-function closeAgenda() {
-  agendaOverlay.classList.add("hidden");
-}
+function openAgenda() { renderAgenda(); agendaOverlay.classList.remove("hidden"); }
+function closeAgenda() { agendaOverlay.classList.add("hidden"); }
 
 function getAvailableProjectsForOffice() {
   const office = currentOffice();
-  const type = office.type;
-
   return projectCatalog.filter((p) => {
-    if (p.type !== type) return false;
+    if (p.type !== office.type) return false;
     if (state.officeIndex < (p.minOfficeIndex || 0)) return false;
     if (isProjectActive(p.id)) return false;
     if (isProjectCompleted(p.id)) return false;
@@ -498,12 +666,10 @@ function getAvailableProjectsForOffice() {
 function checkProjectReq(def) {
   const req = def.req || {};
   const misses = [];
-
   if (req.funds != null && state.funds < req.funds) misses.push(`Fundos ≥ ${req.funds}`);
   if (req.congress != null && state.congressSupport < req.congress) misses.push(`Congresso ≥ ${req.congress}%`);
   if (req.integrity != null && state.integrity < req.integrity) misses.push(`Integridade ≥ ${req.integrity}%`);
   if (req.scandalsMax != null && state.scandals > req.scandalsMax) misses.push(`Escândalo ≤ ${req.scandalsMax}%`);
-
   return { ok: misses.length === 0, misses };
 }
 
@@ -512,18 +678,11 @@ function startProject(projectId) {
   if (!def) return;
 
   const office = currentOffice();
-  if (def.type !== office.type) {
-    addFeed("Este projeto não é compatível com seu cargo atual.");
-    return;
-  }
+  if (def.type !== office.type) { addFeed("Este projeto não é compatível com seu cargo atual."); return; }
 
   const reqCheck = checkProjectReq(def);
-  if (!reqCheck.ok) {
-    addFeed(`Não foi possível iniciar "${def.title}". Requisitos faltando: ${reqCheck.misses.join(", ")}.`);
-    return;
-  }
+  if (!reqCheck.ok) { addFeed(`Não foi possível iniciar "${def.title}". Faltando: ${reqCheck.misses.join(", ")}.`); return; }
 
-  // paga custo
   if (def.cost) state.funds = clamp(state.funds - def.cost);
 
   state.activeProjects.push({
@@ -532,10 +691,14 @@ function startProject(projectId) {
     totalWeeks: def.totalWeeks,
     weeksLeft: def.totalWeeks,
     stalledWeeks: 0,
-    status: "running", // running | stalled
+    status: "running",
   });
 
   addFeed(`Projeto iniciado: ${def.title} (duração: ${def.totalWeeks} semanas).`);
+
+  // manchete de início
+  pushNews(makeProjectNews(def, "start"));
+
   saveGame();
   updateHeader();
   renderAgenda();
@@ -548,12 +711,22 @@ function cancelProject(projectId) {
   const def = getProjectDef(projectId);
   state.activeProjects.splice(idx, 1);
 
-  // penalidade leve
   state.mediaTone = clamp(state.mediaTone - 2);
   state.congressSupport = clamp(state.congressSupport - 2);
   state.integrity = clamp(state.integrity - 1);
 
-  addFeed(`Você cancelou o projeto: ${def?.title ?? projectId}. Houve desgaste político.`);
+  addFeed(`Você cancelou: ${def?.title ?? projectId}. Desgaste político.`);
+  pushNews({
+    id: uid(),
+    week: state.week,
+    year: state.year,
+    title: `Governo recua e cancela "${def?.title ?? "projeto"}"`,
+    subtitle: "Oposição fala em improviso; aliados pedem explicações.",
+    tone: "bad",
+    tags: ["governabilidade", "agenda"],
+    impact: { mediaTone: -1, congressSupport: -1 },
+  });
+
   saveGame();
   updateHeader();
   renderAgenda();
@@ -562,7 +735,6 @@ function cancelProject(projectId) {
 function computeProjectStall(def) {
   const stallIf = def.stallIf || {};
   if (stallIf.congressBelow != null && state.congressSupport < stallIf.congressBelow) return true;
-  // espaço para outras regras: mediaBelow, scandalsAbove etc.
   return false;
 }
 
@@ -614,29 +786,31 @@ function tickProjectsOneWeek() {
     if (!def) return;
 
     const stalled = computeProjectStall(def);
+    const wasStalled = p.status === "stalled";
     p.status = stalled ? "stalled" : "running";
 
     if (stalled) {
       p.stalledWeeks += 1;
-      return; // não avança
+      if (!wasStalled) pushNews(makeProjectNews(def, "stall"));
+      return;
     }
 
-    // aplica efeito semanal e avança
+    // destravou
+    if (wasStalled && !stalled) pushNews(makeProjectNews(def, "resume"));
+
     applyProjectWeeklyEffects(def);
     p.weeksLeft = Math.max(0, p.weeksLeft - 1);
 
-    if (p.weeksLeft <= 0) {
-      completedNow.push(p.id);
-    }
+    if (p.weeksLeft <= 0) completedNow.push(p.id);
   });
 
-  // concluir
   if (completedNow.length) {
     completedNow.forEach((id) => {
       const def = getProjectDef(id);
       if (def) {
         applyProjectCompletion(def);
         addFeed(`Projeto concluído: ${def.title}.`);
+        pushNews(makeProjectNews(def, "complete"));
       }
       state.completedProjects.push(id);
     });
@@ -648,19 +822,17 @@ function tickProjectsOneWeek() {
 function renderAgenda() {
   if (!agendaActive || !agendaAvailable) return;
 
-  // subtítulo com status geral
   const office = currentOffice();
   const typeLabel = office.type === "executive" ? "Executivo" : "Legislativo";
   if (agendaSubtitle) {
     agendaSubtitle.textContent = `Você está no ${typeLabel}. Projetos ativos aplicam efeitos semanais; se travarem, param de avançar.`;
   }
 
-  // ATIVOS
   agendaActive.innerHTML = "";
   if (!state.activeProjects.length) {
     const empty = document.createElement("div");
     empty.className = "project-card";
-    empty.innerHTML = `<div class="project-title">Nenhum projeto ativo</div><div class="project-desc">Abra “Disponíveis” e inicie um projeto com requisitos atendidos.</div>`;
+    empty.innerHTML = `<div class="project-title">Nenhum projeto ativo</div><div class="project-desc">Inicie um projeto em “Disponíveis”.</div>`;
     agendaActive.appendChild(empty);
   } else {
     state.activeProjects.forEach((p) => {
@@ -703,7 +875,7 @@ function renderAgenda() {
       card.querySelector(`[data-cancel="${def.id}"]`).addEventListener("click", () => {
         openModal(
           "Cancelar projeto",
-          `Deseja cancelar "${def.title}"? Isso causa desgaste (mídia e congresso).`,
+          `Cancelar "${def.title}"? Isso gera desgaste (mídia e congresso).`,
           [
             { label: "Cancelar", type: "secondary", onClick: () => cancelProject(def.id) },
             { label: "Voltar", type: "primary" },
@@ -715,7 +887,6 @@ function renderAgenda() {
     });
   }
 
-  // DISPONÍVEIS
   agendaAvailable.innerHTML = "";
   const available = getAvailableProjectsForOffice();
 
@@ -761,15 +932,362 @@ function renderAgenda() {
         </div>
       `;
 
-      const btn = card.querySelector(`[data-start="${def.id}"]`);
-      btn.addEventListener("click", () => startProject(def.id));
-
+      card.querySelector(`[data-start="${def.id}"]`).addEventListener("click", () => startProject(def.id));
       agendaAvailable.appendChild(card);
     });
   }
 
-  // pill do HUD
   if (hudProjectPill) hudProjectPill.textContent = `Projetos: ${state.activeProjects.length}`;
+}
+
+// ===============================
+// ETAPA 3: CALENDÁRIO
+// ===============================
+function recalcNextElectionIfNeeded() {
+  // define um “ciclo eleitoral” fixo para narrativa e progressão
+  const cycle = state.calendar?.electionCycleWeeks || 16;
+  const nowIndex = state.year * 52 + state.week;
+  let nextIndex = state.calendar?.nextElection
+    ? (state.calendar.nextElection.year * 52 + state.calendar.nextElection.week)
+    : (state.year * 52 + cycle);
+
+  if (nextIndex <= nowIndex) {
+    // pula para frente até ficar no futuro
+    const diff = nowIndex - nextIndex;
+    const steps = Math.floor(diff / cycle) + 1;
+    nextIndex += steps * cycle;
+  }
+
+  state.calendar.nextElection = { year: Math.floor(nextIndex / 52), week: nextIndex % 52 };
+  if (state.calendar.nextElection.week === 0) state.calendar.nextElection.week = 52;
+}
+
+function openCalendar() {
+  renderCalendar();
+  calendarOverlay.style.display = "flex";
+}
+function closeCalendar() { calendarOverlay.style.display = "none"; }
+
+function renderCalendar() {
+  recalcNextElectionIfNeeded();
+
+  const milestones = document.getElementById("calendar-milestones");
+  const projectsEl = document.getElementById("calendar-projects");
+  if (!milestones || !projectsEl) return;
+
+  const weeksLeft = weeksToDate({ week: state.week, year: state.year }, state.calendar.nextElection);
+
+  milestones.innerHTML = `
+    <div class="et3-newsitem">
+      <strong>Agora</strong>
+      <div class="et3-sub">${formatTime()} • Cargo: ${currentOffice().name}</div>
+      <div class="et3-meta">
+        <span class="et3-tag">Popularidade: ${Math.round(state.popularity)}%</span>
+        <span class="et3-tag">Escândalo: ${Math.round(state.scandals)}%</span>
+      </div>
+    </div>
+
+    <div class="et3-newsitem">
+      <strong>Próxima janela eleitoral</strong>
+      <div class="et3-sub">Semana ${state.calendar.nextElection.week}/${state.calendar.nextElection.year} (faltam ~${weeksLeft} semana(s))</div>
+      <div class="et3-meta">
+        <span class="et3-tag">Ciclo: ${state.calendar.electionCycleWeeks} semanas</span>
+        <span class="et3-tag">Sugestão: prepare campanha</span>
+      </div>
+    </div>
+  `;
+
+  // Projetos/prazos
+  if (!state.activeProjects.length) {
+    projectsEl.innerHTML = `
+      <div class="et3-newsitem">
+        <strong>Sem projetos ativos</strong>
+        <div class="et3-sub">Use a Agenda para iniciar projetos que geram manchetes e impacto semanal.</div>
+      </div>
+    `;
+  } else {
+    projectsEl.innerHTML = state.activeProjects.map(p => {
+      const def = getProjectDef(p.id);
+      const stalled = p.status === "stalled";
+      return `
+        <div class="et3-newsitem">
+          <strong>${def?.title || p.id}</strong>
+          <div class="et3-sub">${stalled ? "TRAVADO (sem avanço)" : "Em andamento"} • faltam ${p.weeksLeft} semana(s)</div>
+          <div class="et3-meta">
+            <span class="et3-tag">Iniciado: ${p.startedAt.week}/${p.startedAt.year}</span>
+            <span class="et3-tag">${stalled ? "Precisa destravar Congresso" : "Aplicando efeitos semanais"}</span>
+          </div>
+        </div>
+      `;
+    }).join("");
+  }
+}
+
+// ===============================
+// ETAPA 3: NOTÍCIAS / SALA DE IMPRENSA
+// ===============================
+function pushNews(item) {
+  if (!item) return;
+
+  // aplica impacto de manchete (leve, para dar “realismo”)
+  if (item.impact) {
+    const i = item.impact;
+    if (i.mediaTone) state.mediaTone = clamp(state.mediaTone + i.mediaTone);
+    if (i.congressSupport) state.congressSupport = clamp(state.congressSupport + i.congressSupport);
+    if (i.integrity) state.integrity = clamp(state.integrity + i.integrity);
+    if (i.scandals) state.scandals = clamp(state.scandals + i.scandals);
+    if (i.economy) state.economy = clamp(state.economy + i.economy);
+    if (i.security) state.security = clamp(state.security + i.security);
+    if (i.services) state.services = clamp(state.services + i.services);
+    if (i.funds) state.funds = clamp(state.funds + i.funds);
+  }
+
+  state.news.unshift(item);
+  state.unreadNews = clamp((state.unreadNews || 0) + 1, 0, 999);
+  saveGame();
+  updateHeader();
+}
+
+function makeProjectNews(def, phase) {
+  const base = {
+    id: uid(),
+    week: state.week,
+    year: state.year,
+    tags: ["governo", "agenda"],
+    impact: {},
+  };
+
+  if (phase === "start") {
+    return {
+      ...base,
+      title: `Governo anuncia "${def.title}"`,
+      subtitle: "Expectativa cresce; oposição analisa custos e viabilidade.",
+      tone: "neutral",
+      tags: [...base.tags, def.type === "executive" ? "gestão" : "congresso"],
+      impact: { mediaTone: +0.5 },
+    };
+  }
+  if (phase === "stall") {
+    return {
+      ...base,
+      title: `"${def.title}" trava por falta de articulação`,
+      subtitle: "Bastidores indicam resistência e cobrança por liderança política.",
+      tone: "bad",
+      tags: [...base.tags, "governabilidade"],
+      impact: { mediaTone: -0.8, congressSupport: -0.6 },
+    };
+  }
+  if (phase === "resume") {
+    return {
+      ...base,
+      title: `Governo destrava "${def.title}" e retoma execução`,
+      subtitle: "Aliança pontual recompõe maioria e reduz incerteza.",
+      tone: "good",
+      tags: [...base.tags, "articulação"],
+      impact: { mediaTone: +0.6, congressSupport: +0.6 },
+    };
+  }
+  // complete
+  return {
+    ...base,
+    title: `Resultados: "${def.title}" é concluído`,
+    subtitle: "Avaliação pública mede impacto; aliados celebram, críticos reagem.",
+    tone: "good",
+    tags: [...base.tags, "resultado"],
+    impact: { mediaTone: +0.8 },
+  };
+}
+
+function buildWeeklyHeadlines() {
+  // Gera 1 a 3 manchetes por semana, baseado no estado.
+  const n = (Math.random() < 0.35) ? 1 : (Math.random() < 0.75 ? 2 : 3);
+
+  const candidates = [];
+
+  // Economia
+  if (state.economy >= 62) {
+    candidates.push({
+      tone: "good",
+      title: "Indicadores econômicos surpreendem e mercado reage",
+      subtitle: "Especialistas revisam expectativas e governistas capitalizam narrativa.",
+      tags: ["economia", "mercado"],
+      impact: { mediaTone: +0.6, congressSupport: +0.4 },
+    });
+  } else if (state.economy <= 40) {
+    candidates.push({
+      tone: "bad",
+      title: "Pressão econômica aumenta e oposição cobra medidas",
+      subtitle: "Governo enfrenta ruído e vê base hesitar em votações-chave.",
+      tags: ["economia", "crise"],
+      impact: { mediaTone: -0.8, congressSupport: -0.6 },
+    });
+  } else {
+    candidates.push({
+      tone: "neutral",
+      title: "Economia segue estável; expectativa se volta à pauta política",
+      subtitle: "Analistas veem pouco espaço para erro na comunicação do governo.",
+      tags: ["economia"],
+      impact: { mediaTone: +0.1 },
+    });
+  }
+
+  // Segurança
+  if (state.security >= 65) {
+    candidates.push({
+      tone: "good",
+      title: "Queda em indicadores de violência vira vitrine do governo",
+      subtitle: "Aliados defendem ampliação do modelo; críticos pedem transparência.",
+      tags: ["segurança", "gestão"],
+      impact: { mediaTone: +0.5 },
+    });
+  } else if (state.security <= 40) {
+    candidates.push({
+      tone: "bad",
+      title: "Crise de segurança domina debate e derruba confiança",
+      subtitle: "Governo é pressionado por respostas rápidas e coordenadas.",
+      tags: ["segurança", "crise"],
+      impact: { mediaTone: -0.9, congressSupport: -0.4 },
+    });
+  }
+
+  // Serviços
+  if (state.services >= 65) {
+    candidates.push({
+      tone: "good",
+      title: "Serviços públicos melhoram e ampliam capital político",
+      subtitle: "Efeito aparece em regiões-chave e reduz ruído social.",
+      tags: ["serviços", "saúde/educação"],
+      impact: { mediaTone: +0.4 },
+    });
+  } else if (state.services <= 40) {
+    candidates.push({
+      tone: "bad",
+      title: "Filas e desgaste em serviços aumentam pressão nas redes",
+      subtitle: "Base popular oscila e governo tenta conter repercussão.",
+      tags: ["serviços", "pressão social"],
+      impact: { mediaTone: -0.7 },
+    });
+  }
+
+  // Escândalos (sempre com peso narrativo)
+  if (state.scandals >= 60) {
+    candidates.push({
+      tone: "bad",
+      title: "Nova denúncia amplia crise e eleva risco institucional",
+      subtitle: "Planalto/gestão reage; aliados cobram mudança de rota.",
+      tags: ["escândalo", "investigação"],
+      impact: { mediaTone: -1.2, congressSupport: -0.8, integrity: -0.4 },
+    });
+  } else if (state.scandals <= 18 && state.integrity >= 55) {
+    candidates.push({
+      tone: "good",
+      title: "Ambiente político esfria e governo ganha fôlego",
+      subtitle: "Transparência e organização reduzem risco de crise.",
+      tags: ["governança", "integridade"],
+      impact: { mediaTone: +0.5, congressSupport: +0.3 },
+    });
+  }
+
+  // Mídia
+  if (state.mediaTone <= 35) {
+    candidates.push({
+      tone: "bad",
+      title: "Mídia endurece cobertura e pauta vira negativa",
+      subtitle: "Equipe de comunicação tenta reagir com dados e agenda propositiva.",
+      tags: ["mídia", "comunicação"],
+      impact: { popularity: 0, mediaTone: -0.2 },
+    });
+  } else if (state.mediaTone >= 70) {
+    candidates.push({
+      tone: "good",
+      title: "Cobertura melhora e governo emplaca narrativa da semana",
+      subtitle: "Aliados usam manchetes como ativo para coalizão.",
+      tags: ["mídia", "narrativa"],
+      impact: { congressSupport: +0.4 },
+    });
+  }
+
+  // remove duplicação e sorteia
+  const picked = [];
+  for (let i = 0; i < n; i++) {
+    const pool = candidates.filter(x => !picked.includes(x));
+    if (!pool.length) break;
+    picked.push(pick(pool));
+  }
+
+  picked.forEach(h => {
+    pushNews({
+      id: uid(),
+      week: state.week,
+      year: state.year,
+      title: h.title,
+      subtitle: h.subtitle,
+      tone: h.tone,
+      tags: h.tags || [],
+      impact: h.impact || {},
+    });
+  });
+}
+
+function openPress() {
+  renderPress();
+  pressOverlay.style.display = "flex";
+  // ao abrir, marca como lidas
+  state.unreadNews = 0;
+  saveGame();
+  updatePressBadge();
+}
+
+function closePress() { pressOverlay.style.display = "none"; }
+
+function renderPress() {
+  const list = document.getElementById("press-list");
+  const summary = document.getElementById("press-summary");
+  const ticker = document.getElementById("press-ticker");
+  if (!list || !summary || !ticker) return;
+
+  const items = state.news.slice(0, 18);
+  if (!items.length) {
+    list.innerHTML = `
+      <div class="et3-newsitem">
+        <strong>Sem manchetes</strong>
+        <div class="et3-sub">Avance semanas ou execute projetos para gerar notícia.</div>
+      </div>
+    `;
+    ticker.textContent = "Sem manchetes recentes.";
+  } else {
+    list.innerHTML = items.map(n => {
+      const toneClass = n.tone === "good" ? "good" : (n.tone === "bad" ? "bad" : "neutral");
+      const tags = (n.tags || []).slice(0, 6).map(t => `<span class="et3-tag et3-tone ${toneClass}">${t}</span>`).join("");
+      return `
+        <div class="et3-newsitem">
+          <strong>${n.title}</strong>
+          <div class="et3-sub">${n.subtitle}</div>
+          <div class="et3-sub" style="margin-top:6px;opacity:.75">Semana ${n.week}/${n.year}</div>
+          <div class="et3-meta">${tags}</div>
+        </div>
+      `;
+    }).join("");
+
+    const top = items[0];
+    ticker.textContent = `${top.title} — ${top.subtitle}`;
+  }
+
+  // resumo: “narrativa”
+  const last10 = state.news.slice(0, 10);
+  const good = last10.filter(x => x.tone === "good").length;
+  const bad = last10.filter(x => x.tone === "bad").length;
+  const neutral = last10.filter(x => x.tone === "neutral").length;
+
+  summary.innerHTML = `
+    <div class="et3-row"><span>Últimas 10 semanas</span><span>${good} boa(s) • ${neutral} neutra(s) • ${bad} ruim(ns)</span></div>
+    <div class="et3-row"><span>Tom da mídia (agora)</span><span>${Math.round(state.mediaTone)}%</span></div>
+    <div class="et3-row"><span>Apoio no Congresso</span><span>${Math.round(state.congressSupport)}%</span></div>
+    <div class="et3-row"><span>Economia</span><span>${Math.round(state.economy)}%</span></div>
+    <div class="et3-row"><span>Serviços</span><span>${Math.round(state.services)}%</span></div>
+    <div class="et3-row"><span>Segurança</span><span>${Math.round(state.security)}%</span></div>
+    <div class="et3-row"><span>Escândalo</span><span>${Math.round(state.scandals)}%</span></div>
+  `;
 }
 
 // ===============================
@@ -793,20 +1311,25 @@ function advanceTime(weeks = 1) {
     // escândalo tende a subir se integridade baixa
     state.scandals = clamp(state.scandals + (50 - state.integrity) * 0.03 + rnd(-0.8, 1.2));
 
-    // ETAPA 2: tick de projetos SEMANA a SEMANA
+    // ETAPA 2: tick projetos
     tickProjectsOneWeek();
 
     // eventos aleatórios
     if (Math.random() < 0.22) triggerRandomEvent();
+
+    // ETAPA 3: manchetes semanais (sempre)
+    buildWeeklyHeadlines();
+
+    // calendário
+    recalcNextElectionIfNeeded();
   }
 
   updateHeader();
   saveGame();
 
-  // se agenda estiver aberta, atualiza ao avançar tempo
-  if (agendaOverlay && !agendaOverlay.classList.contains("hidden")) {
-    renderAgenda();
-  }
+  if (agendaOverlay && !agendaOverlay.classList.contains("hidden")) renderAgenda();
+  if (pressOverlay && pressOverlay.style.display === "flex") renderPress();
+  if (calendarOverlay && calendarOverlay.style.display === "flex") renderCalendar();
 }
 
 function triggerRandomEvent() {
@@ -820,6 +1343,14 @@ function triggerRandomEvent() {
         state.integrity = clamp(state.integrity - rnd(1, 4));
         state.scandals = clamp(state.scandals + rnd(2, 6));
         addFeed("URGENTE: reportagem pressiona o governo. Sua imagem sofre.");
+        pushNews({
+          id: uid(), week: state.week, year: state.year,
+          title: "Reportagem pressiona governo e expõe fragilidades",
+          subtitle: "Equipe promete respostas; oposição promete reação institucional.",
+          tone: "bad",
+          tags: ["mídia", "crise"],
+          impact: { mediaTone: -0.6, scandals: +0.6 }
+        });
       },
     },
     {
@@ -908,7 +1439,6 @@ function applyWorldDelta({
 
   if (logText) addFeed(logText);
 
-  // aqui o tempo passa (e aciona tickProjects)
   advanceTime(Math.max(0, advanceWeeks));
   updateHeader();
   saveGame();
@@ -922,6 +1452,7 @@ function getActionsForOffice(office) {
     { id: "discurso", label: "Discurso", handler: actionSpeech },
     { id: "campanha", label: "Campanha", handler: openCampaignModal },
     { id: "articular", label: "Articular apoio", handler: actionNegotiateSupport },
+    { id: "passar-semana", label: "Passar semana", handler: () => advanceTime(1) },
   ];
 
   if (office.type === "legislative") {
@@ -997,10 +1528,7 @@ function actionProposeLaw() {
   ];
   const chosen = pick(topics);
 
-  if (state.funds < chosen.cost) {
-    addFeed("Você não tem fundos suficientes para articular um novo projeto.");
-    return;
-  }
+  if (state.funds < chosen.cost) { addFeed("Sem fundos suficientes para articular novo projeto."); return; }
 
   openModal(
     "Propor lei",
@@ -1012,6 +1540,14 @@ function actionProposeLaw() {
         onClick: () => {
           state.funds = clamp(state.funds - chosen.cost);
           applyWorldDelta({ ...chosen.effects, logText: `Você apresentou: ${chosen.name}.`, advanceWeeks: 2 });
+          pushNews({
+            id: uid(), week: state.week, year: state.year,
+            title: `Parlamentar apresenta "${chosen.name}" e pauta ganha tração`,
+            subtitle: "Especialistas avaliam impacto; oposição aponta pontos frágeis.",
+            tone: "neutral",
+            tags: ["congresso", "projeto"],
+            impact: { mediaTone: +0.3 }
+          });
         },
       },
       { label: "Cancelar", type: "secondary" },
@@ -1070,7 +1606,7 @@ function actionSanction() {
             mediaTone: +1,
             integrity: -2,
             groupDelta: { empresariado: +3, classeMedia: +1 },
-            logText: "Você sancionou o projeto. Governabilidade subiu, mas sofreu críticas éticas.",
+            logText: "Você sancionou. Governabilidade subiu, críticas éticas apareceram.",
             advanceWeeks: 1,
           }),
       },
@@ -1083,7 +1619,7 @@ function actionSanction() {
             mediaTone: +1,
             integrity: +4,
             groupDelta: { religiosos: +2, jovens: +1 },
-            logText: "Você vetou o projeto. Integridade subiu, mas o Congresso reagiu.",
+            logText: "Você vetou. Integridade subiu, mas o Congresso reagiu.",
             advanceWeeks: 1,
           }),
       },
@@ -1120,7 +1656,7 @@ function actionCrisis() {
             scandals: +4,
             congressSupport: +1,
             groupDelta: { religiosos: +1, classeMedia: -3, jovens: -2 },
-            logText: "Você atacou a mídia. Base endureceu, mas aumentou desgaste geral.",
+            logText: "Você atacou a mídia. Base endureceu, mas o desgaste aumentou.",
             advanceWeeks: 1,
           }),
       },
@@ -1157,7 +1693,7 @@ function actionBudget() {
             economy: -1,
             integrity: +1,
             groupDelta: { baixaRenda: +7, classeMedia: +2, empresariado: -2 },
-            logText: "Você ampliou programas sociais. Popularidade entre vulneráveis subiu, custo fiscal aumentou.",
+            logText: "Você ampliou programas sociais. Base popular subiu, custo fiscal aumentou.",
             advanceWeeks: 2,
           }),
       },
@@ -1179,7 +1715,7 @@ function actionPublicProgram() {
             services: +8,
             mediaTone: +2,
             groupDelta: { baixaRenda: +4, funcionalismo: +2, classeMedia: +2 },
-            logText: "Mutirão de saúde lançado. Melhorou atendimento e percepção de gestão.",
+            logText: "Mutirão de saúde lançado. Melhorou atendimento e percepção.",
             advanceWeeks: 2,
           }),
       },
@@ -1192,7 +1728,7 @@ function actionPublicProgram() {
             security: +9,
             mediaTone: +1,
             groupDelta: { classeMedia: +3, religiosos: +2, jovens: -1 },
-            logText: "Plano de segurança lançado. Sensação de ordem aumentou, mas houve críticas pontuais.",
+            logText: "Plano de segurança lançado. Sensação de ordem aumentou, críticas pontuais surgiram.",
             advanceWeeks: 2,
           }),
       },
@@ -1213,7 +1749,7 @@ function actionSpeech() {
             mediaTone: +2,
             integrity: +1,
             groupDelta: { baixaRenda: +2, religiosos: +1 },
-            logText: "Você fez um discurso motivador e ganhou tração pública.",
+            logText: "Discurso motivador. Boa repercussão.",
             advanceWeeks: 1,
           }),
       },
@@ -1226,7 +1762,7 @@ function actionSpeech() {
             integrity: +3,
             congressSupport: +1,
             groupDelta: { empresariado: +2, classeMedia: +2 },
-            logText: "Discurso técnico aumentou a percepção de competência.",
+            logText: "Discurso técnico. Percepção de competência aumentou.",
             advanceWeeks: 1,
           }),
       },
@@ -1240,7 +1776,7 @@ function actionSpeech() {
             congressSupport: +2,
             scandals: +2,
             groupDelta: { religiosos: +2, jovens: -3, classeMedia: -2 },
-            logText: "Discurso polarizador mobilizou a base, mas aumentou rejeição e tensão.",
+            logText: "Discurso polarizador. Base mobilizou, rejeição cresceu.",
             advanceWeeks: 1,
           }),
       },
@@ -1263,7 +1799,7 @@ function actionNegotiateSupport() {
             integrity: +2,
             mediaTone: +1,
             scandals: -1,
-            logText: "Você articulou apoio com transparência. Apoio subiu sem grande desgaste.",
+            logText: "Apoio subiu com pouco desgaste.",
             advanceWeeks: 1,
           }),
       },
@@ -1278,7 +1814,7 @@ function actionNegotiateSupport() {
             mediaTone: -2,
             scandals: +7,
             groupDelta: { empresariado: +2, classeMedia: -2 },
-            logText: "Você garantiu apoio por acordos questionáveis. Apoio subiu, risco de escândalo disparou.",
+            logText: "Apoio subiu, mas o risco de escândalo disparou.",
             advanceWeeks: 1,
           }),
       },
@@ -1331,17 +1867,14 @@ function openCampaignModal() {
 function closeCampaignModal() { campaignOverlay.classList.add("hidden"); }
 
 startCampaignBtn.addEventListener("click", () => {
-  if (!selectedToneId || !selectedThemeId) {
-    alert("Selecione o tom do discurso e o tema principal.");
-    return;
-  }
+  if (!selectedToneId || !selectedThemeId) { alert("Selecione tom e tema."); return; }
 
   const tone = tones.find((t) => t.id === selectedToneId);
   const theme = themes.find((th) => th.id === selectedThemeId);
 
   const cost = 8;
   if (state.funds < cost) {
-    addFeed("Você não possui fundos suficientes para uma campanha robusta.");
+    addFeed("Sem fundos suficientes para campanha robusta.");
     closeCampaignModal();
     return;
   }
@@ -1356,6 +1889,15 @@ startCampaignBtn.addEventListener("click", () => {
   state.security = clamp(state.security + (theme.security || 0) * 0.5);
 
   addFeed(`Campanha lançada: tom ${tone.label}, foco ${theme.label}.`);
+
+  pushNews({
+    id: uid(), week: state.week, year: state.year,
+    title: `Campanha entra no ar com foco em ${theme.label}`,
+    subtitle: `Tom ${tone.label} marca estratégia; adversários ajustam discurso.`,
+    tone: "neutral",
+    tags: ["campanha", "eleição"],
+    impact: { mediaTone: +0.5 }
+  });
 
   saveGame();
   closeCampaignModal();
@@ -1412,6 +1954,15 @@ function startElection() {
         ? `Você venceu com ${candidatePercent.toFixed(1)}% dos votos!`
         : `Você perdeu. Ficou com ${candidatePercent.toFixed(1)}% dos votos.`;
 
+      pushNews({
+        id: uid(), week: state.week, year: state.year,
+        title: won ? "Vitória confirmada nas urnas" : "Derrota nas urnas e pressão por mudança",
+        subtitle: won ? "Equipe comemora; oposição reorganiza estratégia." : "Aliados cobram reposicionamento; oposição cresce.",
+        tone: won ? "good" : "bad",
+        tags: ["eleição", "resultado"],
+        impact: won ? { mediaTone: +0.6, congressSupport: +0.6 } : { mediaTone: -0.8, congressSupport: -0.6 }
+      });
+
       electionContinueBtn.disabled = false;
       electionContinueBtn.onclick = () => {
         if (won) advanceOffice();
@@ -1422,7 +1973,7 @@ function startElection() {
             mediaTone: -2,
             scandals: +2,
             groupDelta: { classeMedia: -2, jovens: -1 },
-            logText: "A derrota abalou sua carreira. Você precisa reagrupar forças.",
+            logText: "A derrota abalou sua carreira. Reagrupe forças.",
             advanceWeeks: 1,
           });
           showScreen("game");
@@ -1438,7 +1989,6 @@ function advanceOffice() {
   if (state.officeIndex < offices.length - 1) {
     state.officeIndex += 1;
 
-    // reset parcial (mantém sensação de “novo mandato”)
     state.funds = clamp(40 + rnd(-5, 6));
     state.congressSupport = clamp(40 + rnd(-6, 10));
     state.mediaTone = clamp(50 + (state.integrity - 50) * 0.15 + rnd(-4, 4));
@@ -1446,8 +1996,12 @@ function advanceOffice() {
 
     Object.keys(state.groups).forEach((k) => state.groups[k] = clamp(state.groups[k] + rnd(1, 3)));
 
-    // ao subir cargo, não mantém projetos ativos (realismo: troca de agenda/estrutura)
+    // troca de agenda ao subir
     state.activeProjects = [];
+
+    // recalcula calendário (novo ciclo narrativo)
+    recalcNextElectionIfNeeded();
+
     saveGame();
     beginMandate(true);
   } else {
@@ -1467,6 +2021,10 @@ function beginMandate(newOffice = false) {
   if (newOffice) feedDiv.innerHTML = "";
   updateHeader();
   renderActions();
+
+  injectEtapa3UI();
+  updatePressBadge();
+
   addFeed(newOffice ? `Novo mandato: ${currentOffice().name}.` : `Retomando mandato como ${currentOffice().name}.`);
   saveGame();
 }
@@ -1529,6 +2087,14 @@ newGameBtn.addEventListener("click", () => {
 
     activeProjects: [],
     completedProjects: [],
+
+    news: [],
+    unreadNews: 0,
+    calendar: {
+      electionCycleWeeks: 16,
+      nextElection: { week: 16, year: 2025 },
+    },
+
     timeline: [],
   };
 
@@ -1541,10 +2107,7 @@ newGameBtn.addEventListener("click", () => {
 
 continueBtn.addEventListener("click", () => {
   const loaded = loadGame();
-  if (!loaded) {
-    alert("Nenhum jogo salvo encontrado.");
-    return;
-  }
+  if (!loaded) { alert("Nenhum jogo salvo encontrado."); return; }
   beginMandate(false);
 });
 
@@ -1571,6 +2134,20 @@ confirmSelectionBtn.addEventListener("click", () => {
 
   state.activeProjects = [];
   state.completedProjects = [];
+
+  state.news = [];
+  state.unreadNews = 0;
+  state.calendar = state.calendar || { electionCycleWeeks: 16, nextElection: { week: 16, year: 2025 } };
+  recalcNextElectionIfNeeded();
+
+  pushNews({
+    id: uid(), week: state.week, year: state.year,
+    title: "Novo nome entra no tabuleiro político",
+    subtitle: `Bastidores observam ${state.name} e aguardam primeiro movimento.`,
+    tone: "neutral",
+    tags: ["início", "carreira"],
+    impact: { mediaTone: +0.2 }
+  });
 
   saveGame();
   beginMandate(true);
@@ -1606,6 +2183,9 @@ resetBtn.addEventListener("click", () => {
       },
       activeProjects: [],
       completedProjects: [],
+      news: [],
+      unreadNews: 0,
+      calendar: { electionCycleWeeks: 16, nextElection: { week: 16, year: 2025 } },
       timeline: [],
     };
 
@@ -1623,7 +2203,6 @@ if (openAgendaBtn) openAgendaBtn.addEventListener("click", () => openAgenda());
 if (closeAgendaBtn) closeAgendaBtn.addEventListener("click", () => closeAgenda());
 if (agendaRefreshBtn) agendaRefreshBtn.addEventListener("click", () => renderAgenda());
 
-// clicar fora (no backdrop) fecha agenda
 if (agendaOverlay) {
   agendaOverlay.addEventListener("click", (e) => {
     if (e.target === agendaOverlay || e.target.classList.contains("overlay-backdrop")) closeAgenda();
@@ -1636,6 +2215,16 @@ if (agendaOverlay) {
 function init() {
   renderParties();
   updateContinueVisibility();
+
+  // se tiver save, recalcula calendário sem “abrir o jogo”
+  const raw = localStorage.getItem(STORAGE_KEY);
+  if (raw) {
+    const loaded = loadGame();
+    if (loaded) {
+      recalcNextElectionIfNeeded();
+      saveGame();
+    }
+  }
 }
 
 document.addEventListener("DOMContentLoaded", init);

@@ -178,7 +178,7 @@ html, body {
 .stats { display: flex; flex-wrap: wrap; gap: 0.6rem; font-size: 0.8rem; }
 .stats span strong { color: var(--accent-soft); }
 
-.header-actions { display: flex; gap: 0.5rem; }
+.header-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; }
 
 /* Main */
 .game-main {
@@ -212,6 +212,17 @@ html, body {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.hud-pill {
+  font-size: 0.75rem;
+  padding: 0.25rem 0.6rem;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.08);
+  color: var(--text);
+  opacity: 0.95;
 }
 
 .hud-row {
@@ -407,10 +418,163 @@ html, body {
   gap: 0.5rem;
 }
 
+/* ===== AGENDA (ETAPA 2) ===== */
+.agenda-card {
+  max-width: 1100px;
+  width: 96%;
+  padding: 1.25rem 1.25rem;
+}
+
+.agenda-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  padding-bottom: 0.9rem;
+  margin-bottom: 0.9rem;
+}
+
+.agenda-grid {
+  display: grid;
+  grid-template-columns: 0.9fr 1.1fr;
+  gap: 0.9rem;
+}
+
+.agenda-col {
+  background: rgba(0,0,0,0.70);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 14px;
+  padding: 0.75rem 0.75rem;
+  min-height: 380px;
+  display: flex;
+  flex-direction: column;
+}
+
+.agenda-col-title {
+  font-weight: 800;
+  color: var(--accent-soft);
+  margin-bottom: 0.65rem;
+}
+
+.agenda-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  overflow-y: auto;
+  padding-right: 0.25rem;
+}
+
+.project-card {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 12px;
+  padding: 0.65rem 0.7rem;
+}
+
+.project-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.project-title {
+  font-weight: 800;
+  margin: 0;
+  font-size: 0.95rem;
+}
+
+.project-meta {
+  display: flex;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+  margin-top: 0.35rem;
+}
+
+.pill {
+  font-size: 0.72rem;
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.08);
+  color: var(--text);
+}
+
+.pill.ok { border-color: rgba(42,157,143,0.45); }
+.pill.warn { border-color: rgba(233,196,106,0.55); }
+.pill.bad { border-color: rgba(231,111,81,0.55); }
+
+.project-desc {
+  margin: 0.55rem 0 0.55rem;
+  color: var(--muted);
+  font-size: 0.85rem;
+  line-height: 1.35;
+}
+
+.req-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-bottom: 0.6rem;
+}
+
+.req {
+  font-size: 0.72rem;
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  color: var(--muted);
+}
+
+.req.miss { border-color: rgba(231,111,81,0.55); color: #ffd8d1; }
+
+.project-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.progress-wrap {
+  margin-top: 0.55rem;
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.progress {
+  flex: 1;
+  height: 10px;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.07);
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,0.05);
+}
+
+.progress > div {
+  height: 100%;
+  width: 0%;
+  border-radius: 999px;
+  background: var(--success);
+  transition: width 0.4s ease;
+}
+
+.progress > div.stalled { background: var(--danger); }
+
+.agenda-footer {
+  margin-top: 0.9rem;
+  display: flex;
+  justify-content: flex-end;
+}
+
 /* ===== RESPONSIVO ===== */
 @media (max-width: 980px) {
   .hud-grid { grid-template-columns: 1fr; }
   .hud-row { grid-template-columns: 150px 1fr 52px; }
+  .agenda-grid { grid-template-columns: 1fr; }
+  .agenda-col { min-height: 260px; }
 }
 
 @media (max-width: 768px) {

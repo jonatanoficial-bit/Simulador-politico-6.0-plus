@@ -1,3 +1,4 @@
+/* ===== CONFIGURAÇÃO GLOBAL ===== */
 :root {
   --bg-dark: #050505;
   --bg-card: rgba(20, 20, 20, 0.92);
@@ -27,8 +28,7 @@ body {
   padding: 0;
   width: 100%;
   height: 100%;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
-    sans-serif;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   background: radial-gradient(circle at top, #222, #000);
   color: var(--text);
 }
@@ -48,23 +48,18 @@ body {
   display: flex;
 }
 
-/* Capa com imagem */
+/* Tela de capa com imagem personalizada */
 #start-screen {
-  background: #000 url("assets/capa.png") center center / cover no-repeat;
+  background: #000 url("assets/eda1a77e-3ed3-4b29-aef6-0551bcb8441d.png") center center / cover no-repeat;
 }
 
 .screen-overlay {
   position: absolute;
   inset: 0;
-  background: linear-gradient(
-    135deg,
-    rgba(0, 0, 0, 0.85),
-    rgba(0, 0, 0, 0.6)
-  );
+  background: linear-gradient(135deg, rgba(0, 0, 0, 0.85), rgba(0, 0, 0, 0.6));
 }
 
 /* Card genérico */
-
 .card {
   position: relative;
   z-index: 1;
@@ -76,8 +71,6 @@ body {
   width: 100%;
   color: var(--text);
 }
-
-/* Tela de capa */
 
 .start-card {
   text-align: center;
@@ -100,16 +93,13 @@ body {
   gap: 0.75rem;
 }
 
-/* Botões */
-
 .btn {
   border: none;
   border-radius: 999px;
   padding: 0.65rem 1.4rem;
   font-size: 0.95rem;
   cursor: pointer;
-  transition: background var(--transition-fast),
-    transform var(--transition-fast), box-shadow var(--transition-fast);
+  transition: background var(--transition-fast), transform var(--transition-fast), box-shadow var(--transition-fast);
 }
 
 .btn.primary {
@@ -144,99 +134,9 @@ body {
   font-size: 0.8rem;
 }
 
-/* Seleção de partido */
-
-.selection-card h2 {
-  margin-top: 0;
-  margin-bottom: 1.2rem;
-  font-size: 1.6rem;
-}
-
-.party-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  margin-bottom: 1.5rem;
-}
-
-.party-btn {
-  flex: 1 0 40%;
-  min-width: 90px;
-  border: none;
-  border-radius: 999px;
-  padding: 0.5rem 0.9rem;
-  color: #fff;
-  font-weight: 600;
-  cursor: pointer;
-  text-align: center;
-  transition: transform var(--transition-fast),
-    box-shadow var(--transition-fast), opacity var(--transition-fast),
-    outline var(--transition-fast);
-}
-
-.party-btn span {
-  display: block;
-  font-size: 0.65rem;
-  opacity: 0.85;
-}
-
-.party-btn.selected {
-  outline: 2px solid #fff;
-  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.2);
-}
-
-.party-prp {
-  background: #d7263d;
-}
-.party-pslb {
-  background: #1a73e8;
-}
-.party-ptm {
-  background: #0f9d58;
-}
-.party-pvg {
-  background: #f4b400;
-}
-.party-mdbr {
-  background: #5f6368;
-}
-
-.field {
-  display: flex;
-  flex-direction: column;
-  gap: 0.35rem;
-  margin-bottom: 1.2rem;
-}
-
-.field label {
-  font-size: 0.9rem;
-  color: var(--muted);
-}
-
-.field input {
-  padding: 0.55rem 0.75rem;
-  border-radius: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  background: rgba(0, 0, 0, 0.6);
-  color: var(--text);
-}
-
-.field input:focus {
-  outline: none;
-  border-color: var(--accent);
-}
-
-.selection-actions {
-  display: flex;
-  justify-content: space-between;
-  gap: 0.75rem;
-  flex-wrap: wrap;
-}
-
-/* GAME SCREEN */
-
+/* Tela de jogo com fundo personalizado */
 #game-screen {
-  background: #000;
+  background: #000 url("assets/eda1a77e-3ed3-4b29-aef6-0551bcb8441d.png") center center / cover no-repeat;
 }
 
 .game-overlay {
@@ -258,7 +158,6 @@ body {
 }
 
 /* Header */
-
 .game-header {
   display: flex;
   flex-wrap: wrap;
@@ -297,45 +196,7 @@ body {
   gap: 0.5rem;
 }
 
-/* FUNDO DO PLENÁRIO */
-
-#game-screen::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background-position: center;
-  background-size: cover;
-  background-repeat: no-repeat;
-  opacity: 0.35;
-  transition: background-image 0.4s ease;
-  z-index: 0;
-}
-
-/* Conteúdo principal */
-
-.game-main {
-  position: relative;
-  z-index: 1;
-  display: flex;
-  flex-direction: column;
-  padding: 0.75rem 1rem 1rem;
-  gap: 0.9rem;
-}
-
-.actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  justify-content: center;
-}
-
-.actions .btn {
-  flex: 1 0 150px;
-  max-width: 200px;
-}
-
 /* Feed */
-
 .feed {
   margin-top: 0.5rem;
   width: 100%;
@@ -356,17 +217,15 @@ body {
   font-size: 0.75rem;
 }
 
-/* ELEIÇÃO */
-
+/* Tela de eleição */
 #election-screen {
-  background: #000;
+  background: #000 url("assets/eda1a77e-3ed3-4b29-aef6-0551bcb8441d.png") center center / cover no-repeat;
 }
 
 .election-bg {
   position: absolute;
   inset: 0;
-  background: #000 url("assets/urna_eletronica.jpg") center center / cover
-    no-repeat;
+  background: #000 url("assets/eda1a77e-3ed3-4b29-aef6-0551bcb8441d.png") center center / cover no-repeat;
   opacity: 0.95;
 }
 
@@ -421,8 +280,7 @@ body {
   margin-top: 0.75rem;
 }
 
-/* OVERLAYS */
-
+/* Modais e outros overlays */
 .overlay {
   position: fixed;
   inset: 0;
@@ -446,76 +304,10 @@ body {
   background: var(--bg-overlay);
 }
 
-.modal-card {
-  max-width: 520px;
-  width: 94%;
-  position: relative;
-}
-
-.modal-options {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  margin-top: 1rem;
-}
-
-.modal-options .btn {
-  flex: 1 0 40%;
-  min-width: 120px;
-}
-
-/* CAMPANHA */
-
-.campaign-section {
-  margin-top: 1rem;
-}
-
-.chip-group {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.35rem;
-  margin-top: 0.4rem;
-}
-
-.chip {
-  border-radius: 999px;
-  padding: 0.35rem 0.7rem;
-  font-size: 0.8rem;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  cursor: pointer;
-  transition: background var(--transition-fast), border var(--transition-fast),
-    transform var(--transition-fast);
-}
-
-.chip.selected {
-  background: var(--accent);
-  color: #111;
-  border-color: var(--accent-soft);
-  transform: translateY(-1px);
-}
-
-.modal-actions {
-  margin-top: 1.3rem;
-  display: flex;
-  justify-content: flex-end;
-  gap: 0.5rem;
-}
-
-.small-text {
-  font-size: 0.85rem;
-  color: var(--muted);
-}
-
-/* ----------- RESPONSIVIDADE ----------- */
-
+/* Responsividade */
 @media (max-width: 768px) {
   .card {
     padding: 1.25rem 1.25rem;
-  }
-
-  .start-card h1 {
-    font-size: 1.8rem;
   }
 
   .game-container {
@@ -545,19 +337,11 @@ body {
     max-height: 50vh;
     font-size: 0.85rem;
   }
-
-  .party-btn {
-    flex: 1 0 45%;
-  }
 }
 
 @media (max-width: 480px) {
   .start-card h1 {
     font-size: 1.5rem;
-  }
-
-  .start-card .subtitle {
-    font-size: 0.9rem;
   }
 
   .game-header {

@@ -1,41 +1,23 @@
-// ===============================
-// Simulador Político 6.x — script.js (COMPLETO)
-// Correções:
-// - Fundos por cargo usando IDs (municipal/assembly/...)
-// - Classe do #game-screen atualizada conforme cargo (combina com seu CSS)
-// - Base de simulação mais “real”: blocos do Congresso, grupos sociais, mídia e eventos
-// - Salvamento compatível (mantém progresso e adiciona novos campos)
-// ===============================
-
 const STORAGE_KEY = "simuladorPoliticoSave_v7";
 
-// -------------------------------
-// ESTADO
-// -------------------------------
 let state = {
-  // perfil
   name: "",
   party: null,
-
-  // carreira
   officeIndex: 0,
   week: 1,
   year: 2025,
 
-  // HUD (0–100)
   popularity: 50,
   funds: 50,
   integrity: 50,
 
-  // camadas de simulação (0–100)
-  congressSupport: 45, // apoio médio no legislativo (importa muito no executivo)
-  mediaTone: 50,       // 0 muito hostil — 100 muito favorável
-  economy: 50,         // sensação econômica (emprego, inflação, confiança)
-  security: 50,        // sensação de segurança pública
-  services: 50,        // saúde/educação/serviços
-  scandals: 0,         // risco/pressão por escândalos (0–100)
+  congressSupport: 45,
+  mediaTone: 50,
+  economy: 50,
+  security: 50,
+  services: 50,
+  scandals: 0,
 
-  // grupos sociais (0–100) — afetam popularidade, mídia e eleição
   groups: {
     baixaRenda: 50,
     classeMedia: 50,
@@ -46,14 +28,9 @@ let state = {
     agro: 50,
   },
 
-  // flags e histórico
-  lastMajorDecision: "",
   timeline: [],
 };
 
-// -------------------------------
-// CARGOS / FUNDOS (IDs para CSS)
-// -------------------------------
 const offices = [
   { id: "municipal", name: "Vereador", bg: "assets/municipal.png", type: "legislative" },
   { id: "assembly", name: "Deputado Estadual", bg: "assets/assembly.png", type: "legislative" },
@@ -72,7 +49,6 @@ const parties = [
   { id: "MDBR", label: "MDBR", name: "Movimento Democrático Brasileiro", className: "party-mdbr" },
 ];
 
-// Tom e tema de campanha (mantém seu modal)
 const tones = [
   { id: "populista", label: "Populista", popularity: +8, integrity: -6, media: -2, congress: +1, description: "Fala para as massas, promete muito." },
   { id: "progressista", label: "Progressista", popularity: +5, integrity: +1, media: +1, congress: -1, description: "Defende pautas sociais e direitos." },
@@ -88,9 +64,7 @@ const themes = [
   { id: "meio-ambiente", label: "Meio Ambiente", effect: +2, econ: -1, services: +1, security: 0 },
 ];
 
-// -------------------------------
-// ELEMENTOS
-// -------------------------------
+// ===== ELEMENTOS =====
 const screens = {
   start: document.getElementById("start-screen"),
   selection: document.getElementById("selection-screen"),
@@ -116,6 +90,35 @@ const actionsDiv = document.getElementById("actions");
 const feedDiv = document.getElementById("feed");
 const resetBtn = document.getElementById("reset-btn");
 
+// HUD meters
+const meter = {
+  congress: document.getElementById("meter-congress"),
+  media: document.getElementById("meter-media"),
+  economy: document.getElementById("meter-economy"),
+  security: document.getElementById("meter-security"),
+  services: document.getElementById("meter-services"),
+  scandal: document.getElementById("meter-scandal"),
+
+  congressVal: document.getElementById("meter-congress-val"),
+  mediaVal: document.getElementById("meter-media-val"),
+  economyVal: document.getElementById("meter-economy-val"),
+  securityVal: document.getElementById("meter-security-val"),
+  servicesVal: document.getElementById("meter-services-val"),
+  scandalVal: document.getElementById("meter-scandal-val"),
+};
+
+const groupEls = {
+  baixaRenda: { val: document.getElementById("g-baixaRenda"), bar: document.getElementById("gbar-baixaRenda") },
+  classeMedia: { val: document.getElementById("g-classeMedia"), bar: document.getElementById("gbar-classeMedia") },
+  empresariado: { val: document.getElementById("g-empresariado"), bar: document.getElementById("gbar-empresariado") },
+  funcionalismo: { val: document.getElementById("g-funcionalismo"), bar: document.getElementById("gbar-funcionalismo") },
+  jovens: { val: document.getElementById("g-jovens"), bar: document.getElementById("gbar-jovens") },
+  religiosos: { val: document.getElementById("g-religiosos"), bar: document.getElementById("gbar-religiosos") },
+  agro: { val: document.getElementById("g-agro"), bar: document.getElementById("gbar-agro") },
+};
+
+const hudNote = document.getElementById("hud-note");
+
 // Modal genérico
 const modalOverlay = document.getElementById("modal-overlay");
 const modalTitle = document.getElementById("modal-title");
@@ -139,33 +142,19 @@ const opponentPercentSpan = document.getElementById("opponent-percent");
 const electionResultText = document.getElementById("election-result-text");
 const electionContinueBtn = document.getElementById("election-continue-btn");
 
-// -------------------------------
-// UTIL
-// -------------------------------
-function clamp(value, min = 0, max = 100) {
-  return Math.max(min, Math.min(max, value));
-}
-function rnd(min, max) {
-  return Math.random() * (max - min) + min;
-}
-function pick(arr) {
-  return arr[Math.floor(Math.random() * arr.length)];
-}
-function formatTime() {
-  return `Semana ${state.week}/${state.year}`;
-}
+// ===== UTIL =====
+function clamp(v, min = 0, max = 100) { return Math.max(min, Math.min(max, v)); }
+function rnd(min, max) { return Math.random() * (max - min) + min; }
+function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+function formatTime() { return `Semana ${state.week}/${state.year}`; }
 
-// -------------------------------
-// TELAS
-// -------------------------------
+// ===== TELAS =====
 function showScreen(name) {
   Object.values(screens).forEach((s) => s.classList.remove("active"));
   screens[name].classList.add("active");
 }
 
-// -------------------------------
-// SALVAMENTO
-// -------------------------------
+// ===== SALVAR/CARREGAR =====
 function saveGame() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
 }
@@ -173,25 +162,20 @@ function saveGame() {
 function loadGame() {
   const raw = localStorage.getItem(STORAGE_KEY);
   if (!raw) return null;
-
   try {
     const parsed = JSON.parse(raw);
     if (!parsed?.name || parsed.officeIndex == null) return null;
 
-    // merge compatível (para versões antigas)
     state = {
       ...state,
       ...parsed,
       groups: { ...state.groups, ...(parsed.groups || {}) },
-      timeline: Array.isArray(parsed.timeline) ? parsed.timeline : [],
     };
 
-    // re-hidratar party pelo id (se vier só id)
     if (parsed.party?.id) {
       const p = parties.find((x) => x.id === parsed.party.id) || parsed.party;
       state.party = p;
     }
-
     return state;
   } catch (e) {
     console.error("Erro ao carregar save:", e);
@@ -199,46 +183,30 @@ function loadGame() {
   }
 }
 
-function clearSave() {
-  localStorage.removeItem(STORAGE_KEY);
-}
+function clearSave() { localStorage.removeItem(STORAGE_KEY); }
 
 function updateContinueVisibility() {
   const hasSave = !!localStorage.getItem(STORAGE_KEY);
   continueBtn.style.display = hasSave ? "inline-block" : "none";
 }
 
-// -------------------------------
-// FEED / TIMELINE
-// -------------------------------
+// ===== FEED =====
 function addFeed(message) {
   const p = document.createElement("p");
   p.textContent = message;
   feedDiv.prepend(p);
 }
 
-function logTimeline(type, text) {
-  state.timeline.unshift({ t: Date.now(), time: formatTime(), type, text });
-  // manter tamanho saudável
-  if (state.timeline.length > 200) state.timeline.length = 200;
-}
-
-// -------------------------------
-// VISUAL: FUNDO POR CARGO (classe no #game-screen)
-// -------------------------------
+// ===== VISUAL: fundo por cargo =====
 function syncOfficeVisual() {
   const office = offices[state.officeIndex];
-  // IMPORTANTÍSSIMO: casa com o CSS que você colocou (ex: #game-screen.municipal { ... })
   gameScreen.className = `screen active ${office.id}`;
 }
 
-// -------------------------------
-// SIMULAÇÃO: RECOMPUTAR POPULARIDADE (do mundo real para HUD)
-// -------------------------------
+// ===== SIMULAÇÃO: recalcular popularidade =====
 function recomputePopularity() {
   const g = state.groups;
 
-  // média ponderada simples (ajuste fino depois)
   const groupsAvg =
     g.baixaRenda * 0.18 +
     g.classeMedia * 0.18 +
@@ -248,7 +216,6 @@ function recomputePopularity() {
     g.religiosos * 0.12 +
     g.agro * 0.12;
 
-  // efeitos macro
   const macro =
     state.economy * 0.22 +
     state.services * 0.16 +
@@ -256,23 +223,64 @@ function recomputePopularity() {
     state.mediaTone * 0.10 +
     state.congressSupport * 0.06;
 
-  // escândalos penalizam mais quando integridade é baixa
   const scandalPenalty = (state.scandals * (110 - state.integrity)) / 220;
-
   const base = (groupsAvg * 0.58 + macro * 0.42) - scandalPenalty;
 
   state.popularity = clamp(Math.round(base), 0, 100);
 }
 
-// -------------------------------
-// HUD
-// -------------------------------
-function updateHeader() {
-  const office = offices[state.officeIndex];
+// ===== HUD AAA =====
+function setMeter(fillEl, valEl, value, isDanger = false) {
+  const v = clamp(value);
+  fillEl.style.width = `${v}%`;
+  valEl.textContent = `${Math.round(v)}%`;
 
+  // ajuste de cor “AAA” por nível (sem mudar CSS inteiro)
+  if (!isDanger) {
+    if (v < 35) fillEl.style.background = "var(--danger)";
+    else if (v < 60) fillEl.style.background = "var(--warning)";
+    else fillEl.style.background = "var(--success)";
+  }
+}
+
+function renderHUD() {
+  setMeter(meter.congress, meter.congressVal, state.congressSupport);
+  setMeter(meter.media, meter.mediaVal, state.mediaTone);
+  setMeter(meter.economy, meter.economyVal, state.economy);
+  setMeter(meter.security, meter.securityVal, state.security);
+  setMeter(meter.services, meter.servicesVal, state.services);
+  setMeter(meter.scandal, meter.scandalVal, state.scandals, true);
+
+  // escândalo: sempre vermelho, e “inverso mental” (alto = ruim)
+  meter.scandal.style.background = "var(--danger)";
+
+  Object.keys(groupEls).forEach((k) => {
+    const v = clamp(state.groups[k]);
+    groupEls[k].val.textContent = `${Math.round(v)}`;
+    groupEls[k].bar.style.width = `${v}%`;
+
+    // cor por nível
+    if (v < 35) groupEls[k].bar.style.background = "var(--danger)";
+    else if (v < 60) groupEls[k].bar.style.background = "var(--warning)";
+    else groupEls[k].bar.style.background = "var(--success)";
+  });
+
+  // dicas rápidas (AAA = feedback)
+  const tips = [];
+  if (state.congressSupport < 45) tips.push("Apoio no Congresso baixo: articule alianças.");
+  if (state.mediaTone < 45) tips.push("Mídia hostil: use transparência e discurso técnico.");
+  if (state.scandals > 55) tips.push("Risco de escândalo alto: reduza acordos e aumente integridade.");
+  if (state.economy < 45) tips.push("Economia fraca: decisões fiscais e confiança do mercado importam.");
+  hudNote.textContent = tips.length ? tips.join(" ") : "Situação estável. Aproveite para avançar projetos com impacto.";
+}
+
+// ===== HEADER =====
+function updateHeader() {
   recomputePopularity();
   syncOfficeVisual();
+  renderHUD();
 
+  const office = offices[state.officeIndex];
   playerInfoText.textContent = `${state.name} — Partido ${state.party?.id ?? ""} • ${formatTime()}`;
   officeText.textContent = office.name;
 
@@ -281,34 +289,22 @@ function updateHeader() {
   statIntegrity.textContent = state.integrity;
 }
 
-// -------------------------------
-// TURNO / TEMPO + EVENTOS
-// -------------------------------
+// ===== TEMPO/EVENTOS =====
 function advanceTime(weeks = 1) {
   for (let i = 0; i < weeks; i++) {
     state.week += 1;
-    if (state.week > 52) {
-      state.week = 1;
-      state.year += 1;
-    }
+    if (state.week > 52) { state.week = 1; state.year += 1; }
 
-    // drift natural (o mundo muda)
     state.economy = clamp(state.economy + rnd(-1.5, 1.2));
     state.security = clamp(state.security + rnd(-1.2, 1.0));
     state.services = clamp(state.services + rnd(-1.0, 1.2));
 
-    // mídia tende ao centro, mas reage a integridade/escândalo
     const mediaPull = (50 - state.mediaTone) * 0.06;
     state.mediaTone = clamp(state.mediaTone + mediaPull - state.scandals * 0.01 + (state.integrity - 50) * 0.01);
 
-    // escândalo: cresce se integridade baixa e muita grana usada
     state.scandals = clamp(state.scandals + (50 - state.integrity) * 0.03 + rnd(-0.8, 1.2));
 
-    // evento aleatório com chance semanal
-    const baseEventChance = 0.22; // 22% por semana (ajustável)
-    if (Math.random() < baseEventChance) {
-      triggerRandomEvent();
-    }
+    if (Math.random() < 0.22) triggerRandomEvent();
   }
 
   updateHeader();
@@ -321,113 +317,102 @@ function triggerRandomEvent() {
 
   const events = [
     {
-      id: "pressao_imprensa",
-      title: "Imprensa pressiona",
-      text: "Uma reportagem de grande alcance questiona decisões recentes.",
       apply: () => {
         state.mediaTone = clamp(state.mediaTone - rnd(3, 9));
         state.integrity = clamp(state.integrity - rnd(1, 4));
         state.scandals = clamp(state.scandals + rnd(2, 6));
-        addFeed("URGENTE: Imprensa aumenta pressão. Sua imagem sofre.");
-        logTimeline("evento", "Imprensa pressiona e eleva risco de escândalo.");
+        addFeed("URGENTE: reportagem pressiona o governo. Sua imagem sofre.");
       },
     },
     {
-      id: "boa_notícia_economia",
-      title: "Alívio econômico",
-      text: "Indicadores melhoram e aumentam a confiança no mercado.",
       apply: () => {
         state.economy = clamp(state.economy + rnd(4, 10));
         state.groups.empresariado = clamp(state.groups.empresariado + rnd(2, 6));
         state.groups.classeMedia = clamp(state.groups.classeMedia + rnd(1, 5));
-        addFeed("Boas notícias: economia dá sinais de melhora.");
-        logTimeline("evento", "Economia melhora e reforça confiança.");
+        addFeed("Indicadores econômicos melhoram. Confiança sobe.");
       },
     },
     {
-      id: "onda_criminalidade",
-      title: "Crise de segurança",
-      text: "Aumento de ocorrências e sensação de insegurança.",
       apply: () => {
         state.security = clamp(state.security - rnd(5, 12));
         state.groups.classeMedia = clamp(state.groups.classeMedia - rnd(2, 6));
         state.mediaTone = clamp(state.mediaTone - rnd(2, 6));
         addFeed("ALERTA: crise de segurança domina o noticiário.");
-        logTimeline("evento", "Crise de segurança reduz confiança.");
       },
     },
     {
-      id: "greve_funcionalismo",
-      title: "Greve do funcionalismo",
-      text: "Categoria pressiona por reajustes e melhores condições.",
       apply: () => {
         state.groups.funcionalismo = clamp(state.groups.funcionalismo - rnd(6, 12));
         state.services = clamp(state.services - rnd(2, 6));
         if (isExec) state.congressSupport = clamp(state.congressSupport - rnd(1, 4));
         addFeed("Greve: serviços públicos sofrem e pressão aumenta.");
-        logTimeline("evento", "Greve reduz serviços e tensiona governo.");
       },
     },
     {
-      id: "rumor_corrupcao",
-      title: "Rumor de corrupção",
-      text: "A oposição levanta suspeitas e pede apuração.",
       apply: () => {
         state.scandals = clamp(state.scandals + rnd(6, 14));
         state.mediaTone = clamp(state.mediaTone - rnd(3, 8));
         state.integrity = clamp(state.integrity - rnd(2, 6));
         addFeed("Oposição acusa: rumores de corrupção ganham força.");
-        logTimeline("evento", "Rumor de corrupção eleva escândalos.");
       },
     },
     {
-      id: "articulacao_congresso",
-      title: "Articulação política",
-      text: "Centrão sinaliza abertura para diálogo e apoio pontual.",
       apply: () => {
         state.congressSupport = clamp(state.congressSupport + rnd(4, 10));
-        state.funds = clamp(state.funds - rnd(1, 4)); // custo de articulação
+        state.funds = clamp(state.funds - rnd(1, 4));
         addFeed("Bastidores: articulação melhora apoio no Congresso.");
-        logTimeline("evento", "Articulação melhora apoio no Congresso.");
       },
     },
   ];
 
-  // eventos executivos adicionais
   if (isExec) {
-    events.push(
-      {
-        id: "chuvas_desastre",
-        title: "Desastre natural",
-        text: "Chuvas intensas exigem resposta rápida e recursos.",
-        apply: () => {
-          state.funds = clamp(state.funds - rnd(6, 12));
-          state.services = clamp(state.services - rnd(2, 6));
-          // boa resposta aumenta grupos populares
-          if (Math.random() < 0.55) {
-            state.groups.baixaRenda = clamp(state.groups.baixaRenda + rnd(2, 7));
-            state.mediaTone = clamp(state.mediaTone + rnd(1, 5));
-            addFeed("Resposta rápida: governo ganha pontos com a população afetada.");
-            logTimeline("evento", "Desastre: resposta rápida melhora percepção.");
-          } else {
-            state.groups.baixaRenda = clamp(state.groups.baixaRenda - rnd(4, 9));
-            state.mediaTone = clamp(state.mediaTone - rnd(2, 6));
-            addFeed("Críticas: resposta lenta ao desastre gera desgaste.");
-            logTimeline("evento", "Desastre: resposta lenta gera desgaste.");
-          }
-        },
-      }
-    );
+    events.push({
+      apply: () => {
+        state.funds = clamp(state.funds - rnd(6, 12));
+        state.services = clamp(state.services - rnd(2, 6));
+        if (Math.random() < 0.55) {
+          state.groups.baixaRenda = clamp(state.groups.baixaRenda + rnd(2, 7));
+          state.mediaTone = clamp(state.mediaTone + rnd(1, 5));
+          addFeed("Resposta rápida a desastre: governo ganha pontos.");
+        } else {
+          state.groups.baixaRenda = clamp(state.groups.baixaRenda - rnd(4, 9));
+          state.mediaTone = clamp(state.mediaTone - rnd(2, 6));
+          addFeed("Críticas: resposta lenta a desastre gera desgaste.");
+        }
+      },
+    });
   }
 
-  const ev = pick(events);
-  // aplicamos imediatamente, sem modal extra para manter UI simples
-  ev.apply();
+  pick(events).apply();
 }
 
-// -------------------------------
-// AÇÕES (por cargo)
-// -------------------------------
+// ===== AÇÕES =====
+function applyWorldDelta({
+  funds = 0, integrity = 0, congressSupport = 0, mediaTone = 0,
+  economy = 0, security = 0, services = 0, scandals = 0,
+  groupDelta = {}, logText = "", advanceWeeks = 1,
+}) {
+  state.funds = clamp(state.funds + funds);
+  state.integrity = clamp(state.integrity + integrity);
+  state.congressSupport = clamp(state.congressSupport + congressSupport);
+  state.mediaTone = clamp(state.mediaTone + mediaTone);
+  state.economy = clamp(state.economy + economy);
+  state.security = clamp(state.security + security);
+  state.services = clamp(state.services + services);
+  state.scandals = clamp(state.scandals + scandals);
+
+  Object.keys(groupDelta).forEach((k) => {
+    if (state.groups[k] == null) return;
+    state.groups[k] = clamp(state.groups[k] + groupDelta[k]);
+  });
+
+  if (logText) addFeed(logText);
+
+  advanceTime(Math.max(0, advanceWeeks));
+  updateHeader();
+  saveGame();
+}
+
 function getActionsForOffice(office) {
   const common = [
     { id: "discurso", label: "Discurso", handler: actionSpeech },
@@ -444,7 +429,6 @@ function getActionsForOffice(office) {
     ];
   }
 
-  // executivo
   return [
     { id: "sancionar", label: "Sancionar / Vetar", handler: actionSanction },
     { id: "crise", label: "Gerenciar crise", handler: actionCrisis },
@@ -457,7 +441,6 @@ function getActionsForOffice(office) {
 function renderActions() {
   const office = offices[state.officeIndex];
   const actions = getActionsForOffice(office);
-
   actionsDiv.innerHTML = "";
   actions.forEach((a) => {
     const btn = document.createElement("button");
@@ -468,14 +451,11 @@ function renderActions() {
   });
 }
 
-// -------------------------------
-// MODAL GENÉRICO
-// -------------------------------
+// ===== MODAL =====
 function openModal(title, text, options = []) {
   modalTitle.textContent = title;
   modalText.textContent = text;
   modalOptionsDiv.innerHTML = "";
-
   options.forEach((opt) => {
     const btn = document.createElement("button");
     btn.className = `btn ${opt.type || "secondary"}`;
@@ -486,94 +466,27 @@ function openModal(title, text, options = []) {
     });
     modalOptionsDiv.appendChild(btn);
   });
-
   modalOverlay.classList.remove("hidden");
 }
+function closeModal() { modalOverlay.classList.add("hidden"); }
 
-function closeModal() {
-  modalOverlay.classList.add("hidden");
-}
-
-// -------------------------------
-// APLICAÇÃO DE EFEITOS (DELTA)
-// -------------------------------
-function applyWorldDelta({
-  funds = 0,
-  integrity = 0,
-  congressSupport = 0,
-  mediaTone = 0,
-  economy = 0,
-  security = 0,
-  services = 0,
-  scandals = 0,
-  groupDelta = {},
-  logText = "",
-  major = "",
-  advanceWeeks = 1,
-}) {
-  state.funds = clamp(state.funds + funds);
-  state.integrity = clamp(state.integrity + integrity);
-  state.congressSupport = clamp(state.congressSupport + congressSupport);
-  state.mediaTone = clamp(state.mediaTone + mediaTone);
-  state.economy = clamp(state.economy + economy);
-  state.security = clamp(state.security + security);
-  state.services = clamp(state.services + services);
-  state.scandals = clamp(state.scandals + scandals);
-
-  Object.keys(groupDelta).forEach((k) => {
-    if (state.groups[k] == null) return;
-    state.groups[k] = clamp(state.groups[k] + groupDelta[k]);
-  });
-
-  if (major) state.lastMajorDecision = major;
-
-  if (logText) {
-    addFeed(logText);
-    logTimeline("acao", logText);
-  }
-
-  advanceTime(Math.max(0, advanceWeeks));
-  updateHeader();
-  saveGame();
-}
-
-// -------------------------------
-// AÇÕES LEGISLATIVAS
-// -------------------------------
+// ===== AÇÕES (conteúdo) =====
 function actionVoteProject() {
   const bills = [
     {
       title: "Reforma de segurança nas escolas",
-      yes: {
-        effects: { security: +4, mediaTone: +1, congressSupport: +2, groupDelta: { classeMedia: +3, religiosos: +1 } },
-        integrity: +1,
-      },
-      no: {
-        effects: { security: -2, mediaTone: -1, groupDelta: { classeMedia: -2, jovens: +1 } },
-        integrity: +2,
-      },
+      yes: { security: +4, mediaTone: +1, congressSupport: +2, integrity: +1, groupDelta: { classeMedia: +3, religiosos: +1 } },
+      no:  { security: -2, mediaTone: -1, congressSupport: +1, integrity: +2, groupDelta: { jovens: +1, classeMedia: -2 } },
     },
     {
       title: "Ampliação de programas sociais",
-      yes: {
-        effects: { services: +5, economy: -1, groupDelta: { baixaRenda: +6, classeMedia: +1 }, mediaTone: +1 },
-        integrity: +1,
-      },
-      no: {
-        effects: { services: -2, groupDelta: { baixaRenda: -4, empresariado: +1 }, mediaTone: -1 },
-        integrity: +2,
-      },
+      yes: { services: +5, economy: -1, mediaTone: +1, integrity: +1, groupDelta: { baixaRenda: +6, classeMedia: +1 } },
+      no:  { services: -2, mediaTone: -1, integrity: +2, groupDelta: { baixaRenda: -4, empresariado: +1 } },
     },
     {
       title: "Incentivo fiscal para indústria",
-      yes: {
-        effects: { economy: +5, funds: -3, groupDelta: { empresariado: +6, classeMedia: +1 }, mediaTone: +1 },
-        integrity: -1,
-      },
-      no: {
-        effects: { economy: -1, groupDelta: { empresariado: -4, baixaRenda: +1 }, mediaTone: -1 },
-        integrity: +2,
-      },
+      yes: { economy: +5, funds: -3, mediaTone: +1, integrity: -1, groupDelta: { empresariado: +6, classeMedia: +1 } },
+      no:  { economy: -1, mediaTone: -1, integrity: +2, groupDelta: { empresariado: -4, baixaRenda: +1 } },
     },
   ];
 
@@ -586,56 +499,12 @@ function actionVoteProject() {
       {
         label: "Sim",
         type: "primary",
-        onClick: () => {
-          const passageChance = clamp(45 + state.congressSupport * 0.45 - state.scandals * 0.2, 10, 90) / 100;
-          const passed = Math.random() < passageChance;
-
-          if (passed) {
-            applyWorldDelta({
-              ...chosen.yes.effects,
-              integrity: chosen.yes.integrity,
-              logText: `Você votou SIM e o projeto passou. (${chosen.title})`,
-              major: `Voto SIM: ${chosen.title}`,
-              advanceWeeks: 1,
-            });
-          } else {
-            applyWorldDelta({
-              congressSupport: -2,
-              mediaTone: -1,
-              scandals: +1,
-              logText: `Você votou SIM, mas o projeto travou no plenário. (${chosen.title})`,
-              major: `Voto SIM travado: ${chosen.title}`,
-              advanceWeeks: 1,
-            });
-          }
-        },
+        onClick: () => applyWorldDelta({ ...chosen.yes, logText: `Você votou SIM: ${chosen.title}.`, advanceWeeks: 1 }),
       },
       {
         label: "Não",
         type: "secondary",
-        onClick: () => {
-          const passageChance = clamp(40 + state.congressSupport * 0.35, 10, 85) / 100;
-          const passedAnyway = Math.random() < passageChance;
-
-          if (passedAnyway) {
-            applyWorldDelta({
-              ...chosen.no.effects,
-              integrity: chosen.no.integrity,
-              logText: `Você votou NÃO, mas o projeto passou com outra base. (${chosen.title})`,
-              major: `Voto NÃO (passou): ${chosen.title}`,
-              advanceWeeks: 1,
-            });
-          } else {
-            applyWorldDelta({
-              ...chosen.no.effects,
-              integrity: chosen.no.integrity,
-              congressSupport: +1,
-              logText: `Você votou NÃO e o projeto caiu. (${chosen.title})`,
-              major: `Voto NÃO (caiu): ${chosen.title}`,
-              advanceWeeks: 1,
-            });
-          }
-        },
+        onClick: () => applyWorldDelta({ ...chosen.no, logText: `Você votou NÃO: ${chosen.title}.`, advanceWeeks: 1 }),
       },
     ]
   );
@@ -643,17 +512,14 @@ function actionVoteProject() {
 
 function actionProposeLaw() {
   const topics = [
-    { name: "Projeto de Saúde Básica", cost: 6, effects: { services: +6, groupDelta: { baixaRenda: +4, funcionalismo: +2 }, mediaTone: +1 }, integrity: +1 },
-    { name: "Projeto de Mobilidade Urbana", cost: 5, effects: { economy: +2, services: +2, groupDelta: { classeMedia: +4, jovens: +2 }, mediaTone: +1 }, integrity: +1 },
-    { name: "Projeto de Educação Integral", cost: 6, effects: { services: +5, groupDelta: { jovens: +5, classeMedia: +2 }, mediaTone: +1 }, integrity: +2 },
-    { name: "Projeto de Segurança Comunitária", cost: 5, effects: { security: +6, groupDelta: { religiosos: +2, classeMedia: +2 }, mediaTone: +1 }, integrity: +1 },
+    { name: "Projeto de Saúde Básica", cost: 6, effects: { services: +6, mediaTone: +1, integrity: +1, groupDelta: { baixaRenda: +4, funcionalismo: +2 } } },
+    { name: "Projeto de Mobilidade Urbana", cost: 5, effects: { economy: +2, services: +2, mediaTone: +1, integrity: +1, groupDelta: { classeMedia: +4, jovens: +2 } } },
+    { name: "Projeto de Educação Integral", cost: 6, effects: { services: +5, mediaTone: +1, integrity: +2, groupDelta: { jovens: +5, classeMedia: +2 } } },
   ];
-
   const chosen = pick(topics);
 
   if (state.funds < chosen.cost) {
     addFeed("Você não tem fundos suficientes para articular um novo projeto.");
-    logTimeline("sistema", "Tentativa de propor lei sem fundos.");
     return;
   }
 
@@ -665,32 +531,8 @@ function actionProposeLaw() {
         label: "Apresentar",
         type: "primary",
         onClick: () => {
-          // custo imediato
           state.funds = clamp(state.funds - chosen.cost);
-
-          // chance depende de apoio + integridade - escândalos
-          const chance = clamp(35 + state.congressSupport * 0.55 + state.integrity * 0.10 - state.scandals * 0.30, 10, 90) / 100;
-          const approved = Math.random() < chance;
-
-          if (approved) {
-            applyWorldDelta({
-              ...chosen.effects,
-              integrity: chosen.integrity,
-              congressSupport: +2,
-              logText: `Lei aprovada: ${chosen.name}.`,
-              major: `Lei aprovada: ${chosen.name}`,
-              advanceWeeks: 2,
-            });
-          } else {
-            applyWorldDelta({
-              congressSupport: -3,
-              mediaTone: -2,
-              scandals: +1,
-              logText: `Seu projeto foi rejeitado: ${chosen.name}.`,
-              major: `Lei rejeitada: ${chosen.name}`,
-              advanceWeeks: 2,
-            });
-          }
+          applyWorldDelta({ ...chosen.effects, logText: `Você apresentou: ${chosen.name}.`, advanceWeeks: 2 });
         },
       },
       { label: "Cancelar", type: "secondary" },
@@ -701,28 +543,25 @@ function actionProposeLaw() {
 function actionInspect() {
   openModal(
     "Fiscalização",
-    "Você iniciou uma fiscalização. Encontrou irregularidades?",
+    "Você iniciou uma fiscalização. O que faz se encontrar irregularidades?",
     [
       {
         label: "Denunciar",
         type: "primary",
-        onClick: () => {
+        onClick: () =>
           applyWorldDelta({
             integrity: +5,
             mediaTone: +2,
-            congressSupport: -1, // gera atrito
-            scandals: -3,        // reduz risco (imagem de rigor)
+            scandals: -3,
             groupDelta: { baixaRenda: +2, classeMedia: +2 },
             logText: "Você denunciou irregularidades e ganhou crédito público.",
-            major: "Fiscalização com denúncia",
             advanceWeeks: 1,
-          });
-        },
+          }),
       },
       {
         label: "Abafar",
         type: "secondary",
-        onClick: () => {
+        onClick: () =>
           applyWorldDelta({
             integrity: -6,
             funds: +3,
@@ -731,18 +570,13 @@ function actionInspect() {
             congressSupport: +2,
             groupDelta: { empresariado: +2, classeMedia: -2 },
             logText: "Você abafou o caso. Ganhou recursos, mas aumentou o risco de escândalo.",
-            major: "Fiscalização abafada",
             advanceWeeks: 1,
-          });
-        },
+          }),
       },
     ]
   );
 }
 
-// -------------------------------
-// AÇÕES EXECUTIVAS
-// -------------------------------
 function actionSanction() {
   openModal(
     "Sancionar / Vetar",
@@ -751,32 +585,28 @@ function actionSanction() {
       {
         label: "Sancionar",
         type: "primary",
-        onClick: () => {
+        onClick: () =>
           applyWorldDelta({
             congressSupport: +3,
             mediaTone: +1,
             integrity: -2,
             groupDelta: { empresariado: +3, classeMedia: +1 },
-            logText: "Você sancionou o projeto. Ganhou governabilidade, mas sofreu críticas éticas.",
-            major: "Sancionou projeto polêmico",
+            logText: "Você sancionou o projeto. Governabilidade subiu, mas sofreu críticas éticas.",
             advanceWeeks: 1,
-          });
-        },
+          }),
       },
       {
         label: "Vetar",
         type: "secondary",
-        onClick: () => {
+        onClick: () =>
           applyWorldDelta({
             congressSupport: -3,
             mediaTone: +1,
             integrity: +4,
             groupDelta: { religiosos: +2, jovens: +1 },
             logText: "Você vetou o projeto. Integridade subiu, mas o Congresso reagiu.",
-            major: "Vetou projeto polêmico",
             advanceWeeks: 1,
-          });
-        },
+          }),
       },
     ]
   );
@@ -790,7 +620,7 @@ function actionCrisis() {
       {
         label: "Coletiva + transparência",
         type: "primary",
-        onClick: () => {
+        onClick: () =>
           applyWorldDelta({
             funds: -4,
             integrity: +3,
@@ -798,26 +628,22 @@ function actionCrisis() {
             scandals: -4,
             groupDelta: { classeMedia: +2, jovens: +1 },
             logText: "Você enfrentou a crise com transparência e reduziu danos.",
-            major: "Crise com transparência",
             advanceWeeks: 1,
-          });
-        },
+          }),
       },
       {
         label: "Negar e atacar a mídia",
         type: "secondary",
-        onClick: () => {
+        onClick: () =>
           applyWorldDelta({
             integrity: -6,
             mediaTone: -6,
             scandals: +4,
-            congressSupport: +1, // base aplaude
+            congressSupport: +1,
             groupDelta: { religiosos: +1, classeMedia: -3, jovens: -2 },
             logText: "Você atacou a mídia. Base endureceu, mas aumentou desgaste geral.",
-            major: "Crise negada",
             advanceWeeks: 1,
-          });
-        },
+          }),
       },
     ]
   );
@@ -831,7 +657,7 @@ function actionBudget() {
       {
         label: "Cortar gastos",
         type: "secondary",
-        onClick: () => {
+        onClick: () =>
           applyWorldDelta({
             funds: +10,
             economy: +2,
@@ -839,15 +665,13 @@ function actionBudget() {
             integrity: +1,
             groupDelta: { empresariado: +4, baixaRenda: -3, funcionalismo: -2 },
             logText: "Você cortou gastos. Caixa melhorou, mas serviços e base popular sofreram.",
-            major: "Corte de gastos",
             advanceWeeks: 2,
-          });
-        },
+          }),
       },
       {
         label: "Investir em programas sociais",
         type: "primary",
-        onClick: () => {
+        onClick: () =>
           applyWorldDelta({
             funds: -9,
             services: +6,
@@ -855,10 +679,8 @@ function actionBudget() {
             integrity: +1,
             groupDelta: { baixaRenda: +7, classeMedia: +2, empresariado: -2 },
             logText: "Você ampliou programas sociais. Popularidade entre vulneráveis subiu, custo fiscal aumentou.",
-            major: "Ampliação de programas sociais",
             advanceWeeks: 2,
-          });
-        },
+          }),
       },
     ]
   );
@@ -872,40 +694,33 @@ function actionPublicProgram() {
       {
         label: "Mutirão de saúde",
         type: "primary",
-        onClick: () => {
+        onClick: () =>
           applyWorldDelta({
             funds: -6,
             services: +8,
             mediaTone: +2,
             groupDelta: { baixaRenda: +4, funcionalismo: +2, classeMedia: +2 },
             logText: "Mutirão de saúde lançado. Melhorou atendimento e percepção de gestão.",
-            major: "Mutirão de saúde",
             advanceWeeks: 2,
-          });
-        },
+          }),
       },
       {
         label: "Plano de segurança",
         type: "secondary",
-        onClick: () => {
+        onClick: () =>
           applyWorldDelta({
             funds: -6,
             security: +9,
             mediaTone: +1,
             groupDelta: { classeMedia: +3, religiosos: +2, jovens: -1 },
             logText: "Plano de segurança lançado. Sensação de ordem aumentou, mas houve críticas pontuais.",
-            major: "Plano de segurança",
             advanceWeeks: 2,
-          });
-        },
+          }),
       },
     ]
   );
 }
 
-// -------------------------------
-// DISCURSO / ARTICULAÇÃO
-// -------------------------------
 function actionSpeech() {
   openModal(
     "Discurso",
@@ -914,36 +729,32 @@ function actionSpeech() {
       {
         label: "Motivador",
         type: "primary",
-        onClick: () => {
+        onClick: () =>
           applyWorldDelta({
             mediaTone: +2,
             integrity: +1,
             groupDelta: { baixaRenda: +2, religiosos: +1 },
             logText: "Você fez um discurso motivador e ganhou tração pública.",
-            major: "Discurso motivador",
             advanceWeeks: 1,
-          });
-        },
+          }),
       },
       {
         label: "Técnico",
         type: "secondary",
-        onClick: () => {
+        onClick: () =>
           applyWorldDelta({
             mediaTone: +2,
             integrity: +3,
             congressSupport: +1,
             groupDelta: { empresariado: +2, classeMedia: +2 },
             logText: "Discurso técnico aumentou a percepção de competência.",
-            major: "Discurso técnico",
             advanceWeeks: 1,
-          });
-        },
+          }),
       },
       {
         label: "Polarizador",
         type: "secondary",
-        onClick: () => {
+        onClick: () =>
           applyWorldDelta({
             mediaTone: -3,
             integrity: -4,
@@ -951,18 +762,14 @@ function actionSpeech() {
             scandals: +2,
             groupDelta: { religiosos: +2, jovens: -3, classeMedia: -2 },
             logText: "Discurso polarizador mobilizou a base, mas aumentou rejeição e tensão.",
-            major: "Discurso polarizador",
             advanceWeeks: 1,
-          });
-        },
+          }),
       },
     ]
   );
 }
 
 function actionNegotiateSupport() {
-  const office = offices[state.officeIndex];
-
   openModal(
     "Articular apoio",
     "Bastidores: como você busca governabilidade?",
@@ -970,7 +777,7 @@ function actionNegotiateSupport() {
       {
         label: "Negociar com transparência",
         type: "primary",
-        onClick: () => {
+        onClick: () =>
           applyWorldDelta({
             funds: -3,
             congressSupport: +6,
@@ -978,16 +785,13 @@ function actionNegotiateSupport() {
             mediaTone: +1,
             scandals: -1,
             logText: "Você articulou apoio com transparência. Apoio subiu sem grande desgaste.",
-            major: "Articulação transparente",
             advanceWeeks: 1,
-          });
-        },
+          }),
       },
       {
         label: "Toma-lá-dá-cá",
         type: "secondary",
-        onClick: () => {
-          const isExec = office.type === "executive";
+        onClick: () =>
           applyWorldDelta({
             funds: -6,
             congressSupport: +10,
@@ -995,19 +799,15 @@ function actionNegotiateSupport() {
             mediaTone: -2,
             scandals: +7,
             groupDelta: { empresariado: +2, classeMedia: -2 },
-            logText: "Você garantiu apoio via acordos questionáveis. Governabilidade subiu, risco de escândalo disparou.",
-            major: isExec ? "Coalizão por concessões" : "Acordo político questionável",
+            logText: "Você garantiu apoio por acordos questionáveis. Apoio subiu, risco de escândalo disparou.",
             advanceWeeks: 1,
-          });
-        },
+          }),
       },
     ]
   );
 }
 
-// -------------------------------
-// CAMPANHA (mantém seu modal)
-// -------------------------------
+// ===== CAMPANHA =====
 let selectedToneId = null;
 let selectedThemeId = null;
 
@@ -1018,13 +818,11 @@ function renderCampaignOptions() {
     chip.className = "chip";
     chip.textContent = t.label;
     chip.title = t.description;
-
     chip.addEventListener("click", () => {
       selectedToneId = t.id;
       [...toneOptionsDiv.children].forEach((c) => c.classList.remove("selected"));
       chip.classList.add("selected");
     });
-
     toneOptionsDiv.appendChild(chip);
   });
 
@@ -1033,13 +831,11 @@ function renderCampaignOptions() {
     const chip = document.createElement("button");
     chip.className = "chip";
     chip.textContent = th.label;
-
     chip.addEventListener("click", () => {
       selectedThemeId = th.id;
       [...themeOptionsDiv.children].forEach((c) => c.classList.remove("selected"));
       chip.classList.add("selected");
     });
-
     themeOptionsDiv.appendChild(chip);
   });
 
@@ -1051,10 +847,7 @@ function openCampaignModal() {
   renderCampaignOptions();
   campaignOverlay.classList.remove("hidden");
 }
-
-function closeCampaignModal() {
-  campaignOverlay.classList.add("hidden");
-}
+function closeCampaignModal() { campaignOverlay.classList.add("hidden"); }
 
 startCampaignBtn.addEventListener("click", () => {
   if (!selectedToneId || !selectedThemeId) {
@@ -1068,11 +861,9 @@ startCampaignBtn.addEventListener("click", () => {
   const cost = 8;
   if (state.funds < cost) {
     addFeed("Você não possui fundos suficientes para uma campanha robusta.");
-    logTimeline("sistema", "Campanha falhou por falta de fundos.");
     return;
   }
 
-  // efeitos de campanha
   state.funds = clamp(state.funds - cost);
   state.integrity = clamp(state.integrity + tone.integrity);
   state.mediaTone = clamp(state.mediaTone + tone.media);
@@ -1082,32 +873,18 @@ startCampaignBtn.addEventListener("click", () => {
   state.services = clamp(state.services + (theme.services || 0) * 0.5);
   state.security = clamp(state.security + (theme.security || 0) * 0.5);
 
-  // impacto social por tema
-  const g = {};
-  if (theme.id === "economia") g.empresariado = +4, g.classeMedia = +2;
-  if (theme.id === "saude") g.baixaRenda = +3, g.funcionalismo = +2;
-  if (theme.id === "educacao") g.jovens = +4, g.classeMedia = +2;
-  if (theme.id === "seguranca") g.religiosos = +2, g.classeMedia = +2, g.jovens = -1;
-  if (theme.id === "meio-ambiente") g.jovens = +2, g.empresariado = -1, g.agro = -2;
-
-  Object.keys(g).forEach((k) => state.groups[k] = clamp(state.groups[k] + g[k]));
-
   addFeed(`Campanha lançada: tom ${tone.label}, foco ${theme.label}.`);
-  logTimeline("campanha", `Campanha: ${tone.label} / ${theme.label}`);
 
   saveGame();
   closeCampaignModal();
 
-  // avançar o tempo e ir para eleição
   advanceTime(2);
   startElection();
 });
 
 cancelCampaignBtn.addEventListener("click", () => closeCampaignModal());
 
-// -------------------------------
-// ELEIÇÃO (mais “real”: considera grupos, mídia, congresso, macro e escândalo)
-// -------------------------------
+// ===== ELEIÇÃO =====
 function startElection() {
   showScreen("election");
 
@@ -1122,10 +899,8 @@ function startElection() {
   electionResultText.textContent = "";
   electionContinueBtn.disabled = true;
 
-  // base: popularidade já é recomputada
   recomputePopularity();
 
-  // desempenho macro e confiança institucional
   const macroScore =
     state.economy * 0.22 +
     state.services * 0.18 +
@@ -1134,9 +909,7 @@ function startElection() {
     state.congressSupport * 0.10 +
     state.integrity * 0.16;
 
-  const scandalPenalty = (state.scandals * (110 - state.integrity)) / 190; // mais duro
-
-  // ruído eleitoral (campanha, oponente, viradas)
+  const scandalPenalty = (state.scandals * (110 - state.integrity)) / 190;
   const noise = rnd(-9, 9);
 
   let candidatePercent = clamp(macroScore - scandalPenalty + noise, 8, 92);
@@ -1151,20 +924,14 @@ function startElection() {
     setTimeout(() => {
       const won = candidatePercent > opponentPercent;
 
-      if (won) {
-        electionResultText.textContent = `Você venceu com ${candidatePercent.toFixed(1)}% dos votos!`;
-        logTimeline("eleicao", `Vitória eleitoral (${office.name}) com ${candidatePercent.toFixed(1)}%.`);
-      } else {
-        electionResultText.textContent = `Você perdeu. Ficou com ${candidatePercent.toFixed(1)}% dos votos.`;
-        logTimeline("eleicao", `Derrota eleitoral (${office.name}) com ${candidatePercent.toFixed(1)}%.`);
-      }
+      electionResultText.textContent = won
+        ? `Você venceu com ${candidatePercent.toFixed(1)}% dos votos!`
+        : `Você perdeu. Ficou com ${candidatePercent.toFixed(1)}% dos votos.`;
 
       electionContinueBtn.disabled = false;
       electionContinueBtn.onclick = () => {
-        if (won) {
-          advanceOffice();
-        } else {
-          // penalidade realista pós-derrota
+        if (won) advanceOffice();
+        else {
           applyWorldDelta({
             funds: -4,
             congressSupport: -2,
@@ -1172,7 +939,6 @@ function startElection() {
             scandals: +2,
             groupDelta: { classeMedia: -2, jovens: -1 },
             logText: "A derrota abalou sua carreira. Você precisa reagrupar forças.",
-            major: "Derrota eleitoral",
             advanceWeeks: 1,
           });
           showScreen("game");
@@ -1188,22 +954,17 @@ function advanceOffice() {
   if (state.officeIndex < offices.length - 1) {
     state.officeIndex += 1;
 
-    // reset parcial por novo mandato
     state.funds = clamp(40 + rnd(-5, 6));
     state.congressSupport = clamp(40 + rnd(-6, 10));
     state.mediaTone = clamp(50 + (state.integrity - 50) * 0.15 + rnd(-4, 4));
     state.scandals = clamp(state.scandals * 0.6);
 
-    // ajuste social: vitória dá “lua de mel” moderada
-    Object.keys(state.groups).forEach((k) => {
-      state.groups[k] = clamp(state.groups[k] + rnd(1, 3));
-    });
+    Object.keys(state.groups).forEach((k) => state.groups[k] = clamp(state.groups[k] + rnd(1, 3)));
 
     saveGame();
     beginMandate(true);
   } else {
     addFeed("Você alcançou a presidência e se manteve no poder. Fim de jogo (por enquanto).");
-    logTimeline("final", "Chegou à presidência.");
     saveGame();
     showScreen("game");
     updateHeader();
@@ -1211,33 +972,17 @@ function advanceOffice() {
   }
 }
 
-// -------------------------------
-// INÍCIO DE MANDATO
-// -------------------------------
+// ===== MANDATO =====
 function beginMandate(newOffice = false) {
   showScreen("game");
-
-  // manter feed como histórico de sessão (limpa só em mudança grande)
   if (newOffice) feedDiv.innerHTML = "";
-
   updateHeader();
   renderActions();
-
-  const office = offices[state.officeIndex];
-  if (newOffice) {
-    addFeed(`Novo mandato: ${office.name}.`);
-    logTimeline("mandato", `Assumiu como ${office.name}.`);
-  } else {
-    addFeed(`Retomando mandato como ${office.name}.`);
-    logTimeline("mandato", `Retomou mandato como ${office.name}.`);
-  }
-
+  addFeed(newOffice ? `Novo mandato: ${offices[state.officeIndex].name}.` : `Retomando mandato como ${offices[state.officeIndex].name}.`);
   saveGame();
 }
 
-// -------------------------------
-// SELEÇÃO DE PARTIDO
-// -------------------------------
+// ===== PARTIDOS =====
 function renderParties() {
   partyListDiv.innerHTML = "";
   let selectedId = state.party?.id ?? null;
@@ -1259,9 +1004,7 @@ function renderParties() {
   });
 }
 
-// -------------------------------
-// BOTÕES PRINCIPAIS
-// -------------------------------
+// ===== BOTÕES =====
 newGameBtn.addEventListener("click", () => {
   state = {
     name: "",
@@ -1287,7 +1030,6 @@ newGameBtn.addEventListener("click", () => {
       religiosos: 50,
       agro: 50,
     },
-    lastMajorDecision: "",
     timeline: [],
   };
 
@@ -1306,27 +1048,18 @@ continueBtn.addEventListener("click", () => {
   beginMandate(false);
 });
 
-backToStartBtn.addEventListener("click", () => {
-  showScreen("start");
-});
+backToStartBtn.addEventListener("click", () => showScreen("start"));
 
 confirmSelectionBtn.addEventListener("click", () => {
-  if (!state.party) {
-    alert("Selecione um partido.");
-    return;
-  }
+  if (!state.party) { alert("Selecione um partido."); return; }
   const name = playerNameInput.value.trim();
-  if (!name) {
-    alert("Digite seu nome.");
-    return;
-  }
+  if (!name) { alert("Digite seu nome."); return; }
 
   state.name = name;
   state.officeIndex = 0;
   state.week = 1;
   state.year = 2025;
 
-  // valores iniciais levemente variáveis (não fica “igual sempre”)
   state.funds = clamp(48 + rnd(-6, 6));
   state.integrity = clamp(52 + rnd(-6, 6));
   state.congressSupport = clamp(44 + rnd(-8, 10));
@@ -1343,7 +1076,6 @@ confirmSelectionBtn.addEventListener("click", () => {
 resetBtn.addEventListener("click", () => {
   if (confirm("Deseja iniciar um novo jogo? O progresso salvo será apagado.")) {
     clearSave();
-
     state = {
       name: "",
       party: null,
@@ -1368,7 +1100,6 @@ resetBtn.addEventListener("click", () => {
         religiosos: 50,
         agro: 50,
       },
-      lastMajorDecision: "",
       timeline: [],
     };
 
@@ -1379,12 +1110,9 @@ resetBtn.addEventListener("click", () => {
   }
 });
 
-// -------------------------------
-// INIT
-// -------------------------------
+// ===== INIT =====
 function init() {
   renderParties();
   updateContinueVisibility();
 }
-
 document.addEventListener("DOMContentLoaded", init);

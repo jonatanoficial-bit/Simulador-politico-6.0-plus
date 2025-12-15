@@ -1,8 +1,11 @@
-/* ===== CONFIGURAÇÃO GLOBAL ===== */
+/* ===========================
+   CONFIGURAÇÃO GLOBAL
+   =========================== */
+
 :root {
   --bg-dark: #050505;
   --bg-card: rgba(20, 20, 20, 0.92);
-  --bg-overlay: rgba(0, 0, 0, 0.55);
+  --bg-overlay: rgba(0, 0, 0, 0.65);
   --accent: #c8a253;
   --accent-soft: #e0c58b;
   --text: #f5f5f5;
@@ -12,8 +15,7 @@
   --warning: #e9c46a;
   --border-radius: 16px;
   --shadow-soft: 0 24px 60px rgba(0, 0, 0, 0.7);
-  --transition-fast: 0.2s ease;
-  --font-size-base: 16px;
+  --transition-fast: 0.25s ease;
 }
 
 *,
@@ -26,14 +28,15 @@ html,
 body {
   margin: 0;
   padding: 0;
-  width: 100%;
   height: 100%;
   font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  background: radial-gradient(circle at top, #222, #000);
   color: var(--text);
+  background: #000;
 }
 
-/* ----------- SCREENS ----------- */
+/* ===========================
+   TELAS
+   =========================== */
 
 .screen {
   position: relative;
@@ -48,50 +51,42 @@ body {
   display: flex;
 }
 
-/* Tela de capa com imagem personalizada */
+/* ===========================
+   CAPA
+   =========================== */
+
 #start-screen {
-  background: #000 url("assets/eda1a77e-3ed3-4b29-aef6-0551bcb8441d.png") center center / cover no-repeat;
+  background: radial-gradient(circle at top, #222, #000);
 }
 
 .screen-overlay {
   position: absolute;
   inset: 0;
-  background: linear-gradient(135deg, rgba(0, 0, 0, 0.85), rgba(0, 0, 0, 0.6));
+  background: linear-gradient(
+    135deg,
+    rgba(0, 0, 0, 0.85),
+    rgba(0, 0, 0, 0.55)
+  );
 }
 
-/* Card genérico */
+/* ===========================
+   CARD BASE
+   =========================== */
+
 .card {
   position: relative;
-  z-index: 1;
+  z-index: 2;
   background: var(--bg-card);
   border-radius: var(--border-radius);
   box-shadow: var(--shadow-soft);
   padding: 1.75rem 2rem;
   max-width: 720px;
   width: 100%;
-  color: var(--text);
 }
 
-.start-card {
-  text-align: center;
-}
-
-.start-card h1 {
-  font-size: 2.25rem;
-  margin-bottom: 0.75rem;
-}
-
-.start-card .subtitle {
-  margin-bottom: 1.8rem;
-  color: var(--muted);
-}
-
-.start-buttons {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 0.75rem;
-}
+/* ===========================
+   BOTÕES
+   =========================== */
 
 .btn {
   border: none;
@@ -99,7 +94,7 @@ body {
   padding: 0.65rem 1.4rem;
   font-size: 0.95rem;
   cursor: pointer;
-  transition: background var(--transition-fast), transform var(--transition-fast), box-shadow var(--transition-fast);
+  transition: all var(--transition-fast);
 }
 
 .btn.primary {
@@ -119,14 +114,9 @@ body {
   border: 1px solid var(--accent-soft);
 }
 
-.btn.secondary:hover {
-  background: rgba(255, 255, 255, 0.04);
-}
-
 .btn.ghost {
-  background: rgba(255, 255, 255, 0.03);
+  background: rgba(255, 255, 255, 0.05);
   color: var(--muted);
-  border: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .btn.small {
@@ -134,225 +124,135 @@ body {
   font-size: 0.8rem;
 }
 
-/* Tela de jogo com fundo personalizado */
+/* ===========================
+   TELA PRINCIPAL DO JOGO
+   =========================== */
+
 #game-screen {
-  background: #000 url("assets/eda1a77e-3ed3-4b29-aef6-0551bcb8441d.png") center center / cover no-repeat;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
 }
 
-.game-overlay {
-  background: radial-gradient(circle at top, rgba(0, 0, 0, 0.55), #000);
+/* Fundo dinâmico por cargo */
+#game-screen.municipal { background-image: url("assets/municipal.png"); }
+#game-screen.assembly  { background-image: url("assets/assembly.png"); }
+#game-screen.federal   { background-image: url("assets/federal.png"); }
+#game-screen.senate    { background-image: url("assets/senate.png"); }
+#game-screen.mayor     { background-image: url("assets/mayor.png"); }
+#game-screen.governor  { background-image: url("assets/governor.png"); }
+#game-screen.president { background-image: url("assets/president.png"); }
+
+/* Overlay cinematográfico */
+#game-screen::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    circle at top,
+    rgba(0, 0, 0, 0.55),
+    rgba(0, 0, 0, 0.9)
+  );
+  z-index: 1;
 }
+
+/* ===========================
+   CONTAINER DO JOGO
+   =========================== */
 
 .game-container {
   position: relative;
-  z-index: 1;
+  z-index: 2;
   width: 100%;
   max-width: 1200px;
   min-height: min(85vh, 900px);
-  background-color: rgba(5, 5, 5, 0.75);
+  background: rgba(5, 5, 5, 0.78);
   border-radius: 20px;
-  box-shadow: var(--shadow-soft);
-  overflow: hidden;
   display: flex;
   flex-direction: column;
+  overflow: hidden;
 }
 
-/* Header */
+/* ===========================
+   HEADER
+   =========================== */
+
 .game-header {
   display: flex;
-  flex-wrap: wrap;
-  align-items: center;
   justify-content: space-between;
-  gap: 0.5rem 1rem;
+  align-items: center;
   padding: 0.75rem 1rem;
   background: rgba(0, 0, 0, 0.85);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
-}
-
-.player-info {
-  display: flex;
-  flex-direction: column;
-  gap: 0.1rem;
-  font-size: 0.9rem;
-}
-
-.player-info span:first-child {
-  font-weight: 600;
-}
-
-.stats {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.6rem;
-  font-size: 0.8rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .stats span strong {
   color: var(--accent-soft);
 }
 
-.header-actions {
+/* ===========================
+   AÇÕES
+   =========================== */
+
+.actions {
   display: flex;
-  gap: 0.5rem;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  justify-content: center;
 }
 
-/* Feed */
+.actions .btn {
+  flex: 1 0 160px;
+  max-width: 220px;
+}
+
+/* ===========================
+   FEED / LINHA DO TEMPO
+   =========================== */
+
 .feed {
-  margin-top: 0.5rem;
-  width: 100%;
-  max-height: 45vh;
+  margin-top: 1rem;
   padding: 0.75rem;
   border-radius: 12px;
   background: rgba(0, 0, 0, 0.75);
+  max-height: 45vh;
   overflow-y: auto;
   font-size: 0.9rem;
 }
 
-.feed p {
-  margin: 0 0 0.35rem;
-}
+/* ===========================
+   ELEIÇÃO
+   =========================== */
 
-.feed p small {
-  opacity: 0.65;
-  font-size: 0.75rem;
-}
-
-/* Tela de eleição */
 #election-screen {
-  background: #000 url("assets/eda1a77e-3ed3-4b29-aef6-0551bcb8441d.png") center center / cover no-repeat;
+  background: url("assets/urna_eletronica.jpg") center / cover no-repeat;
 }
 
-.election-bg {
+#election-screen::before {
+  content: "";
   position: absolute;
   inset: 0;
-  background: #000 url("assets/eda1a77e-3ed3-4b29-aef6-0551bcb8441d.png") center center / cover no-repeat;
-  opacity: 0.95;
+  background: rgba(0, 0, 0, 0.75);
 }
 
 .election-card {
+  position: relative;
+  z-index: 2;
   max-width: 600px;
   text-align: center;
 }
 
-.vote-bars {
-  margin: 1.5rem 0;
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
+/* ===========================
+   RESPONSIVO
+   =========================== */
 
-.vote-bar {
-  display: grid;
-  grid-template-columns: auto 1fr auto;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.vote-bar .label {
-  font-size: 0.85rem;
-}
-
-.bar-outer {
-  width: 100%;
-  height: 14px;
-  border-radius: 999px;
-  background: rgba(0, 0, 0, 0.35);
-  overflow: hidden;
-}
-
-.bar-inner {
-  height: 100%;
-  width: 0;
-  border-radius: 999px;
-  background: var(--success);
-  transition: width 1.2s ease-out;
-}
-
-.bar-inner.opponent {
-  background: var(--danger);
-}
-
-.percent-label {
-  font-size: 0.85rem;
-}
-
-.result-text {
-  margin-top: 0.75rem;
-}
-
-/* Modais e outros overlays */
-.overlay {
-  position: fixed;
-  inset: 0;
-  display: none;
-  align-items: center;
-  justify-content: center;
-  z-index: 20;
-}
-
-.overlay.hidden {
-  display: none;
-}
-
-.overlay:not(.hidden) {
-  display: flex;
-}
-
-.overlay-backdrop {
-  position: absolute;
-  inset: 0;
-  background: var(--bg-overlay);
-}
-
-/* Responsividade */
 @media (max-width: 768px) {
-  .card {
-    padding: 1.25rem 1.25rem;
-  }
-
   .game-container {
     border-radius: 0;
-    max-width: 100%;
-    min-height: calc(100vh - 2rem);
-  }
-
-  .game-header {
-    align-items: flex-start;
-  }
-
-  .stats {
-    gap: 0.35rem;
-  }
-
-  .stats span {
-    font-size: 0.75rem;
+    min-height: 100vh;
   }
 
   .actions .btn {
     flex: 1 0 100%;
-    max-width: none;
-  }
-
-  .feed {
-    max-height: 50vh;
-    font-size: 0.85rem;
-  }
-}
-
-@media (max-width: 480px) {
-  .start-card h1 {
-    font-size: 1.5rem;
-  }
-
-  .game-header {
-    font-size: 0.8rem;
-  }
-
-  .stats span {
-    font-size: 0.7rem;
-  }
-
-  .btn {
-    font-size: 0.85rem;
   }
 }

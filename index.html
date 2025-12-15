@@ -12,26 +12,20 @@
     <div class="screen-overlay"></div>
     <div class="card start-card">
       <h1>Simulador Político 6.0 Plus</h1>
-      <p class="subtitle">
-        Viva a experiência da política brasileira de forma realista.
-      </p>
+      <p class="subtitle">Viva a experiência da política brasileira de forma realista.</p>
       <div class="start-buttons">
         <button id="new-game-btn" class="btn primary">Novo jogo</button>
-        <button id="continue-btn" class="btn secondary" style="display:none;">
-          Continuar jogo
-        </button>
+        <button id="continue-btn" class="btn secondary" style="display:none;">Continuar jogo</button>
       </div>
     </div>
   </section>
 
-  <!-- TELA DE SELEÇÃO DE PARTIDO / NOME -->
+  <!-- TELA DE SELEÇÃO -->
   <section id="selection-screen" class="screen">
     <div class="card selection-card">
       <h2>Escolha seu partido</h2>
 
-      <div id="party-list" class="party-list">
-        <!-- Preenchido pelo JS -->
-      </div>
+      <div id="party-list" class="party-list"></div>
 
       <div class="field">
         <label for="player-name">Seu nome</label>
@@ -39,17 +33,13 @@
       </div>
 
       <div class="selection-actions">
-        <button id="confirm-selection-btn" class="btn primary">
-          Confirmar
-        </button>
-        <button id="back-to-start-btn" class="btn ghost">
-          Voltar
-        </button>
+        <button id="confirm-selection-btn" class="btn primary">Confirmar</button>
+        <button id="back-to-start-btn" class="btn ghost">Voltar</button>
       </div>
     </div>
   </section>
 
-  <!-- TELA PRINCIPAL DO JOGO -->
+  <!-- TELA DO JOGO -->
   <section id="game-screen" class="screen">
     <div class="screen-overlay game-overlay"></div>
 
@@ -59,29 +49,140 @@
           <span id="player-info-text"></span>
           <span id="office-text"></span>
         </div>
+
         <div class="stats">
           <span>Popularidade: <strong id="stat-popularity">0</strong>%</span>
           <span>Fundos: <strong id="stat-funds">0</strong></span>
           <span>Integridade: <strong id="stat-integrity">0</strong>%</span>
         </div>
+
         <div class="header-actions">
-          <button id="reset-btn" class="btn small ghost">
-            Novo jogo
-          </button>
+          <button id="reset-btn" class="btn small ghost">Novo jogo</button>
         </div>
       </header>
 
       <main class="game-main">
+        <!-- HUD AAA -->
+        <section class="hud-grid">
+          <div class="hud-card">
+            <div class="hud-title">Painel de Situação</div>
+
+            <div class="hud-row">
+              <div class="hud-label">Apoio no Congresso</div>
+              <div class="meter">
+                <div id="meter-congress" class="meter-fill"></div>
+              </div>
+              <div id="meter-congress-val" class="hud-val">0%</div>
+            </div>
+
+            <div class="hud-row">
+              <div class="hud-label">Mídia</div>
+              <div class="meter">
+                <div id="meter-media" class="meter-fill"></div>
+              </div>
+              <div id="meter-media-val" class="hud-val">0%</div>
+            </div>
+
+            <div class="hud-row">
+              <div class="hud-label">Economia</div>
+              <div class="meter">
+                <div id="meter-economy" class="meter-fill"></div>
+              </div>
+              <div id="meter-economy-val" class="hud-val">0%</div>
+            </div>
+
+            <div class="hud-row">
+              <div class="hud-label">Segurança</div>
+              <div class="meter">
+                <div id="meter-security" class="meter-fill"></div>
+              </div>
+              <div id="meter-security-val" class="hud-val">0%</div>
+            </div>
+
+            <div class="hud-row">
+              <div class="hud-label">Serviços</div>
+              <div class="meter">
+                <div id="meter-services" class="meter-fill"></div>
+              </div>
+              <div id="meter-services-val" class="hud-val">0%</div>
+            </div>
+
+            <div class="hud-row">
+              <div class="hud-label danger">Risco de escândalo</div>
+              <div class="meter danger">
+                <div id="meter-scandal" class="meter-fill danger"></div>
+              </div>
+              <div id="meter-scandal-val" class="hud-val">0%</div>
+            </div>
+          </div>
+
+          <div class="hud-card">
+            <div class="hud-title">Blocos Sociais</div>
+            <div class="groups-grid">
+              <div class="group-item">
+                <div class="group-top">
+                  <span>Baixa renda</span><strong id="g-baixaRenda">0</strong>
+                </div>
+                <div class="meter mini"><div id="gbar-baixaRenda" class="meter-fill"></div></div>
+              </div>
+
+              <div class="group-item">
+                <div class="group-top">
+                  <span>Classe média</span><strong id="g-classeMedia">0</strong>
+                </div>
+                <div class="meter mini"><div id="gbar-classeMedia" class="meter-fill"></div></div>
+              </div>
+
+              <div class="group-item">
+                <div class="group-top">
+                  <span>Empresariado</span><strong id="g-empresariado">0</strong>
+                </div>
+                <div class="meter mini"><div id="gbar-empresariado" class="meter-fill"></div></div>
+              </div>
+
+              <div class="group-item">
+                <div class="group-top">
+                  <span>Funcionalismo</span><strong id="g-funcionalismo">0</strong>
+                </div>
+                <div class="meter mini"><div id="gbar-funcionalismo" class="meter-fill"></div></div>
+              </div>
+
+              <div class="group-item">
+                <div class="group-top">
+                  <span>Jovens</span><strong id="g-jovens">0</strong>
+                </div>
+                <div class="meter mini"><div id="gbar-jovens" class="meter-fill"></div></div>
+              </div>
+
+              <div class="group-item">
+                <div class="group-top">
+                  <span>Religiosos</span><strong id="g-religiosos">0</strong>
+                </div>
+                <div class="meter mini"><div id="gbar-religiosos" class="meter-fill"></div></div>
+              </div>
+
+              <div class="group-item">
+                <div class="group-top">
+                  <span>Agronegócio</span><strong id="g-agro">0</strong>
+                </div>
+                <div class="meter mini"><div id="gbar-agro" class="meter-fill"></div></div>
+              </div>
+            </div>
+
+            <div class="hud-note" id="hud-note">
+              Dica: para aprovar projetos, você precisa de apoio no Congresso e boa relação com a mídia.
+            </div>
+          </div>
+        </section>
+
         <div id="actions" class="actions"></div>
 
-        <section id="feed" class="feed">
-          <!-- Log do jogo -->
-        </section>
+        <section id="feed" class="feed"></section>
       </main>
     </div>
   </section>
 
-  <!-- TELA DE ELEIÇÃO / URNA -->
+  <!-- TELA DE ELEIÇÃO -->
   <section id="election-screen" class="screen">
     <div class="election-bg"></div>
 
@@ -92,25 +193,20 @@
       <div class="vote-bars">
         <div class="vote-bar">
           <span class="label">Você</span>
-          <div class="bar-outer">
-            <div id="candidate-bar" class="bar-inner"></div>
-          </div>
+          <div class="bar-outer"><div id="candidate-bar" class="bar-inner"></div></div>
           <span id="candidate-percent" class="percent-label">0%</span>
         </div>
+
         <div class="vote-bar">
           <span class="label">Oponente</span>
-          <div class="bar-outer">
-            <div id="opponent-bar" class="bar-inner opponent"></div>
-          </div>
+          <div class="bar-outer"><div id="opponent-bar" class="bar-inner opponent"></div></div>
           <span id="opponent-percent" class="percent-label">0%</span>
         </div>
       </div>
 
       <p id="election-result-text" class="result-text"></p>
 
-      <button id="election-continue-btn" class="btn primary" disabled>
-        Continuar
-      </button>
+      <button id="election-continue-btn" class="btn primary" disabled>Continuar</button>
     </div>
   </section>
 
@@ -120,9 +216,7 @@
     <div class="card modal-card">
       <h3 id="modal-title"></h3>
       <p id="modal-text"></p>
-      <div id="modal-options" class="modal-options">
-        <!-- Botões criados via JS -->
-      </div>
+      <div id="modal-options" class="modal-options"></div>
     </div>
   </div>
 
@@ -131,31 +225,21 @@
     <div class="overlay-backdrop"></div>
     <div class="card modal-card">
       <h3>Planejar campanha</h3>
-      <p class="small-text">
-        Escolha o tom do discurso e o principal tema da campanha:
-      </p>
+      <p class="small-text">Escolha o tom do discurso e o principal tema da campanha:</p>
 
       <div class="campaign-section">
         <h4>Tom do discurso</h4>
-        <div id="tone-options" class="chip-group">
-          <!-- via JS -->
-        </div>
+        <div id="tone-options" class="chip-group"></div>
       </div>
 
       <div class="campaign-section">
         <h4>Tema principal</h4>
-        <div id="theme-options" class="chip-group">
-          <!-- via JS -->
-        </div>
+        <div id="theme-options" class="chip-group"></div>
       </div>
 
       <div class="modal-actions">
-        <button id="start-campaign-btn" class="btn primary">
-          Iniciar campanha
-        </button>
-        <button id="cancel-campaign-btn" class="btn ghost">
-          Cancelar
-        </button>
+        <button id="start-campaign-btn" class="btn primary">Iniciar campanha</button>
+        <button id="cancel-campaign-btn" class="btn ghost">Cancelar</button>
       </div>
     </div>
   </div>

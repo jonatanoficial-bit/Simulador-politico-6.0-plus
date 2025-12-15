@@ -57,6 +57,7 @@
         </div>
 
         <div class="header-actions">
+          <button id="open-agenda-btn" class="btn small secondary">Agenda</button>
           <button id="reset-btn" class="btn small ghost">Novo jogo</button>
         </div>
       </header>
@@ -65,53 +66,44 @@
         <!-- HUD AAA -->
         <section class="hud-grid">
           <div class="hud-card">
-            <div class="hud-title">Painel de Situação</div>
+            <div class="hud-title">
+              <span>Painel de Situação</span>
+              <span class="hud-pill" id="hud-project-pill">Projetos: 0</span>
+            </div>
 
             <div class="hud-row">
               <div class="hud-label">Apoio no Congresso</div>
-              <div class="meter">
-                <div id="meter-congress" class="meter-fill"></div>
-              </div>
+              <div class="meter"><div id="meter-congress" class="meter-fill"></div></div>
               <div id="meter-congress-val" class="hud-val">0%</div>
             </div>
 
             <div class="hud-row">
               <div class="hud-label">Mídia</div>
-              <div class="meter">
-                <div id="meter-media" class="meter-fill"></div>
-              </div>
+              <div class="meter"><div id="meter-media" class="meter-fill"></div></div>
               <div id="meter-media-val" class="hud-val">0%</div>
             </div>
 
             <div class="hud-row">
               <div class="hud-label">Economia</div>
-              <div class="meter">
-                <div id="meter-economy" class="meter-fill"></div>
-              </div>
+              <div class="meter"><div id="meter-economy" class="meter-fill"></div></div>
               <div id="meter-economy-val" class="hud-val">0%</div>
             </div>
 
             <div class="hud-row">
               <div class="hud-label">Segurança</div>
-              <div class="meter">
-                <div id="meter-security" class="meter-fill"></div>
-              </div>
+              <div class="meter"><div id="meter-security" class="meter-fill"></div></div>
               <div id="meter-security-val" class="hud-val">0%</div>
             </div>
 
             <div class="hud-row">
               <div class="hud-label">Serviços</div>
-              <div class="meter">
-                <div id="meter-services" class="meter-fill"></div>
-              </div>
+              <div class="meter"><div id="meter-services" class="meter-fill"></div></div>
               <div id="meter-services-val" class="hud-val">0%</div>
             </div>
 
             <div class="hud-row">
               <div class="hud-label danger">Risco de escândalo</div>
-              <div class="meter danger">
-                <div id="meter-scandal" class="meter-fill danger"></div>
-              </div>
+              <div class="meter danger"><div id="meter-scandal" class="meter-fill danger"></div></div>
               <div id="meter-scandal-val" class="hud-val">0%</div>
             </div>
           </div>
@@ -120,57 +112,43 @@
             <div class="hud-title">Blocos Sociais</div>
             <div class="groups-grid">
               <div class="group-item">
-                <div class="group-top">
-                  <span>Baixa renda</span><strong id="g-baixaRenda">0</strong>
-                </div>
+                <div class="group-top"><span>Baixa renda</span><strong id="g-baixaRenda">0</strong></div>
                 <div class="meter mini"><div id="gbar-baixaRenda" class="meter-fill"></div></div>
               </div>
 
               <div class="group-item">
-                <div class="group-top">
-                  <span>Classe média</span><strong id="g-classeMedia">0</strong>
-                </div>
+                <div class="group-top"><span>Classe média</span><strong id="g-classeMedia">0</strong></div>
                 <div class="meter mini"><div id="gbar-classeMedia" class="meter-fill"></div></div>
               </div>
 
               <div class="group-item">
-                <div class="group-top">
-                  <span>Empresariado</span><strong id="g-empresariado">0</strong>
-                </div>
+                <div class="group-top"><span>Empresariado</span><strong id="g-empresariado">0</strong></div>
                 <div class="meter mini"><div id="gbar-empresariado" class="meter-fill"></div></div>
               </div>
 
               <div class="group-item">
-                <div class="group-top">
-                  <span>Funcionalismo</span><strong id="g-funcionalismo">0</strong>
-                </div>
+                <div class="group-top"><span>Funcionalismo</span><strong id="g-funcionalismo">0</strong></div>
                 <div class="meter mini"><div id="gbar-funcionalismo" class="meter-fill"></div></div>
               </div>
 
               <div class="group-item">
-                <div class="group-top">
-                  <span>Jovens</span><strong id="g-jovens">0</strong>
-                </div>
+                <div class="group-top"><span>Jovens</span><strong id="g-jovens">0</strong></div>
                 <div class="meter mini"><div id="gbar-jovens" class="meter-fill"></div></div>
               </div>
 
               <div class="group-item">
-                <div class="group-top">
-                  <span>Religiosos</span><strong id="g-religiosos">0</strong>
-                </div>
+                <div class="group-top"><span>Religiosos</span><strong id="g-religiosos">0</strong></div>
                 <div class="meter mini"><div id="gbar-religiosos" class="meter-fill"></div></div>
               </div>
 
               <div class="group-item">
-                <div class="group-top">
-                  <span>Agronegócio</span><strong id="g-agro">0</strong>
-                </div>
+                <div class="group-top"><span>Agronegócio</span><strong id="g-agro">0</strong></div>
                 <div class="meter mini"><div id="gbar-agro" class="meter-fill"></div></div>
               </div>
             </div>
 
             <div class="hud-note" id="hud-note">
-              Dica: para aprovar projetos, você precisa de apoio no Congresso e boa relação com a mídia.
+              Dica: abra a Agenda e inicie projetos com requisitos. Projetos podem travar se o Congresso cair.
             </div>
           </div>
         </section>
@@ -240,6 +218,36 @@
       <div class="modal-actions">
         <button id="start-campaign-btn" class="btn primary">Iniciar campanha</button>
         <button id="cancel-campaign-btn" class="btn ghost">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- AGENDA DO GOVERNO (ETAPA 2) -->
+  <div id="agenda-overlay" class="overlay hidden">
+    <div class="overlay-backdrop"></div>
+    <div class="card agenda-card">
+      <div class="agenda-head">
+        <div>
+          <h3>Agenda do Governo</h3>
+          <p class="small-text" id="agenda-subtitle">Projetos ativos aplicam efeitos semanais. Se travarem, não avançam.</p>
+        </div>
+        <button id="close-agenda-btn" class="btn small ghost">Fechar</button>
+      </div>
+
+      <div class="agenda-grid">
+        <div class="agenda-col">
+          <div class="agenda-col-title">Ativos</div>
+          <div id="agenda-active" class="agenda-list"></div>
+        </div>
+
+        <div class="agenda-col">
+          <div class="agenda-col-title">Disponíveis</div>
+          <div id="agenda-available" class="agenda-list"></div>
+        </div>
+      </div>
+
+      <div class="agenda-footer">
+        <button id="agenda-refresh-btn" class="btn secondary">Atualizar</button>
       </div>
     </div>
   </div>

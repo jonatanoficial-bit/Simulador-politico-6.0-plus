@@ -1,4 +1,4 @@
-const STORAGE_KEY = "simuladorPoliticoSave_v9_calendar_news";
+const STORAGE_KEY = "simuladorPoliticoSave_v10_staff";
 
 // ===============================
 // ESTADO
@@ -32,15 +32,27 @@ let state = {
   },
 
   // ETAPA 2
-  activeProjects: [],     // [{ id, startedAt:{week,year}, totalWeeks, weeksLeft, stalledWeeks, status }]
-  completedProjects: [],  // [id]
+  activeProjects: [],
+  completedProjects: [],
 
   // ETAPA 3
-  news: [],               // [{ id, week, year, title, subtitle, tone, tags:[], impact:{...} }]
+  news: [],
   unreadNews: 0,
   calendar: {
-    electionCycleWeeks: 16, // a cada 16 semanas existe “janela eleitoral”
-    nextElection: { week: 16, year: 2025 }, // recalculado no init
+    electionCycleWeeks: 16,
+    nextElection: { week: 16, year: 2025 },
+  },
+
+  // ETAPA 4 (STAFF)
+  staff: {
+    hired: {
+      chief: null,   // { id, level, weeklyCost, effects, name }
+      whip: null,
+      press: null,
+      econ: null,
+      legal: null,
+    },
+    availablePoolSeed: 1, // muda para renovar pool
   },
 
   timeline: [],
@@ -77,6 +89,75 @@ const themes = [
   { id: "educacao", label: "Educação", econ: 0, services: +5, security: 0 },
   { id: "seguranca", label: "Segurança", econ: -1, services: -1, security: +7 },
   { id: "meio-ambiente", label: "Meio Ambiente", econ: -1, services: +1, security: 0 },
+];
+
+// ===============================
+// ETAPA 4: CATÁLOGO DE ASSESSORES
+// - effects.passive: deltas por semana
+// - effects.crisis: bônus ao escolher ações de crise/press
+// - effects.project: reduz chance/impacto de travamento
+// ===============================
+const staffRoles = [
+  {
+    roleId: "chief",
+    title: "Chefe de Gabinete",
+    desc: "Organiza a máquina, reduz travamentos e melhora execução.",
+    minOfficeIndex: 0,
+    pool: [
+      { id: "chief_1", name: "Patrícia Duarte", level: 2, weeklyCost: 3, effects: { passive: { integrity: +0.2, services: +0.1 }, project: { stallBuffer: 2, stallChanceMult: 0.85 } } },
+      { id: "chief_2", name: "Ricardo Menezes", level: 3, weeklyCost: 5, effects: { passive: { integrity: +0.3, mediaTone: +0.15 }, project: { stallBuffer: 3, stallChanceMult: 0.80 } } },
+      { id: "chief_3", name: "Helena Siqueira", level: 4, weeklyCost: 7, effects: { passive: { integrity: +0.35, services: +0.2 }, project: { stallBuffer: 4, stallChanceMult: 0.72 } } },
+      { id: "chief_4", name: "Marcos Vilar", level: 5, weeklyCost: 9, effects: { passive: { integrity: +0.45, mediaTone: +0.2, services: +0.2 }, project: { stallBuffer: 5, stallChanceMult: 0.65 } } },
+    ],
+  },
+  {
+    roleId: "whip",
+    title: "Articulador Político",
+    desc: "Constrói maioria, estabiliza o Congresso e destrava projetos.",
+    minOfficeIndex: 0,
+    pool: [
+      { id: "whip_1", name: "Bruno Azevedo", level: 2, weeklyCost: 3, effects: { passive: { congressSupport: +0.45 }, project: { stallBuffer: 2, stallChanceMult: 0.88 } } },
+      { id: "whip_2", name: "Carla Noronha", level: 3, weeklyCost: 5, effects: { passive: { congressSupport: +0.65, mediaTone: +0.05 }, project: { stallBuffer: 3, stallChanceMult: 0.82 } } },
+      { id: "whip_3", name: "Eduardo Pires", level: 4, weeklyCost: 7, effects: { passive: { congressSupport: +0.85, mediaTone: +0.08 }, project: { stallBuffer: 4, stallChanceMult: 0.75 } } },
+      { id: "whip_4", name: "Lívia Campos", level: 5, weeklyCost: 9, effects: { passive: { congressSupport: +1.05, mediaTone: +0.10 }, project: { stallBuffer: 5, stallChanceMult: 0.68 } } },
+    ],
+  },
+  {
+    roleId: "press",
+    title: "Porta-voz",
+    desc: "Controla narrativa, reduz dano de crise e melhora cobertura.",
+    minOfficeIndex: 0,
+    pool: [
+      { id: "press_1", name: "Tainá Rocha", level: 2, weeklyCost: 3, effects: { passive: { mediaTone: +0.55 }, crisis: { mediaShield: 0.15 } } },
+      { id: "press_2", name: "Guilherme Bastos", level: 3, weeklyCost: 5, effects: { passive: { mediaTone: +0.75, integrity: +0.05 }, crisis: { mediaShield: 0.22 } } },
+      { id: "press_3", name: "Sofia Lacerda", level: 4, weeklyCost: 7, effects: { passive: { mediaTone: +0.95, integrity: +0.08 }, crisis: { mediaShield: 0.30 } } },
+      { id: "press_4", name: "Renato Vidal", level: 5, weeklyCost: 9, effects: { passive: { mediaTone: +1.15, integrity: +0.10 }, crisis: { mediaShield: 0.38 } } },
+    ],
+  },
+  {
+    roleId: "econ",
+    title: "Assessor Econômico",
+    desc: "Reduz volatilidade e melhora performance macroeconômica.",
+    minOfficeIndex: 0,
+    pool: [
+      { id: "econ_1", name: "Nádia Moreira", level: 2, weeklyCost: 3, effects: { passive: { economy: +0.55, funds: +0.10 }, macro: { econVolatilityMult: 0.92 } } },
+      { id: "econ_2", name: "Fernando Leal", level: 3, weeklyCost: 5, effects: { passive: { economy: +0.75, funds: +0.15 }, macro: { econVolatilityMult: 0.88 } } },
+      { id: "econ_3", name: "Paulo Arantes", level: 4, weeklyCost: 7, effects: { passive: { economy: +0.95, funds: +0.20 }, macro: { econVolatilityMult: 0.84 } } },
+      { id: "econ_4", name: "Camila Rangel", level: 5, weeklyCost: 9, effects: { passive: { economy: +1.15, funds: +0.25 }, macro: { econVolatilityMult: 0.80 } } },
+    ],
+  },
+  {
+    roleId: "legal",
+    title: "Jurídico/Compliance",
+    desc: "Reduz escândalos, melhora integridade e risco institucional.",
+    minOfficeIndex: 0,
+    pool: [
+      { id: "legal_1", name: "João Furtado", level: 2, weeklyCost: 3, effects: { passive: { scandals: -0.55, integrity: +0.20 }, risk: { scandalEventMult: 0.90 } } },
+      { id: "legal_2", name: "Aline Barros", level: 3, weeklyCost: 5, effects: { passive: { scandals: -0.75, integrity: +0.25 }, risk: { scandalEventMult: 0.82 } } },
+      { id: "legal_3", name: "Pedro Nogueira", level: 4, weeklyCost: 7, effects: { passive: { scandals: -0.95, integrity: +0.30 }, risk: { scandalEventMult: 0.75 } } },
+      { id: "legal_4", name: "Larissa Teixeira", level: 5, weeklyCost: 9, effects: { passive: { scandals: -1.15, integrity: +0.35 }, risk: { scandalEventMult: 0.68 } } },
+    ],
+  },
 ];
 
 // ===============================
@@ -283,16 +364,16 @@ const agendaRefreshBtn = document.getElementById("agenda-refresh-btn");
 const agendaSubtitle = document.getElementById("agenda-subtitle");
 
 // ===============================
-// ETAPA 3: UI DINÂMICA (Calendário + Imprensa)
-// (cria botões/overlays se não existirem no HTML)
+// ETAPA 3+4: UI DINÂMICA (Calendário + Imprensa + Assessores)
 // ===============================
 let pressBtn = null;
 let calendarBtn = null;
+let staffBtn = null;
 let pressOverlay = null;
 let calendarOverlay = null;
+let staffOverlay = null;
 
-function injectEtapa3UI() {
-  // CSS mínimo AAA para overlays/ticker (sem mexer no seu style.css)
+function injectEtapa34UI() {
   const css = `
   .et3-fabbar{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
   .et3-btn{border:1px solid rgba(255,255,255,.18);background:rgba(0,0,0,.35);color:#fff;padding:10px 12px;border-radius:12px;cursor:pointer;backdrop-filter: blur(6px);font-weight:700}
@@ -300,11 +381,11 @@ function injectEtapa3UI() {
   .et3-badge{display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:22px;padding:0 8px;border-radius:999px;margin-left:8px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.18);font-size:12px}
   .et3-badge.hot{background:rgba(255,80,80,.18);border-color:rgba(255,80,80,.35)}
   .et3-overlay{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.55);z-index:9999}
-  .et3-panel{width:min(980px,92vw);height:min(78vh,720px);background:rgba(8,10,14,.92);border:1px solid rgba(255,255,255,.14);border-radius:18px;box-shadow:0 16px 80px rgba(0,0,0,.55);overflow:hidden;display:flex;flex-direction:column}
+  .et3-panel{width:min(1040px,94vw);height:min(80vh,760px);background:rgba(8,10,14,.92);border:1px solid rgba(255,255,255,.14);border-radius:18px;box-shadow:0 16px 80px rgba(0,0,0,.55);overflow:hidden;display:flex;flex-direction:column}
   .et3-head{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid rgba(255,255,255,.12)}
   .et3-head h3{margin:0;font-size:16px;letter-spacing:.4px}
   .et3-close{background:transparent;color:#fff;border:1px solid rgba(255,255,255,.18);border-radius:12px;padding:8px 10px;cursor:pointer}
-  .et3-body{padding:12px 14px;overflow:auto;display:grid;grid-template-columns: 1.3fr .7fr;gap:12px}
+  .et3-body{padding:12px 14px;overflow:auto;display:grid;grid-template-columns: 1.2fr .8fr;gap:12px}
   .et3-card{border:1px solid rgba(255,255,255,.12);border-radius:16px;background:rgba(255,255,255,.04);padding:12px}
   .et3-card h4{margin:0 0 10px 0;font-size:14px}
   .et3-newsitem{padding:10px;border:1px solid rgba(255,255,255,.10);border-radius:14px;background:rgba(0,0,0,.25);margin-bottom:10px}
@@ -319,15 +400,29 @@ function injectEtapa3UI() {
   .et3-row{display:flex;justify-content:space-between;gap:10px;font-size:12px;opacity:.92}
   .et3-row span:last-child{font-weight:800}
   .et3-ticker{margin-top:10px;padding:10px 12px;border-radius:14px;border:1px solid rgba(255,255,255,.12);background:rgba(0,0,0,.22);font-size:12px;line-height:1.35}
+
+  /* STAFF */
+  .st-grid{display:grid;grid-template-columns:1fr;gap:10px}
+  .st-role{padding:10px;border:1px solid rgba(255,255,255,.10);border-radius:14px;background:rgba(0,0,0,.24)}
+  .st-role-top{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+  .st-role-title{font-weight:900;font-size:13px}
+  .st-role-sub{opacity:.78;font-size:12px;margin-top:4px;line-height:1.35}
+  .st-pill{display:inline-flex;gap:6px;align-items:center;font-size:11px;padding:4px 8px;border-radius:999px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.06)}
+  .st-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+  .st-btn{border:1px solid rgba(255,255,255,.18);background:rgba(0,0,0,.35);color:#fff;padding:8px 10px;border-radius:12px;cursor:pointer;font-weight:800;font-size:12px}
+  .st-btn.primary{background:rgba(80,220,120,.12);border-color:rgba(80,220,120,.26)}
+  .st-btn.danger{background:rgba(255,80,80,.12);border-color:rgba(255,80,80,.26)}
+  .st-btn:disabled{opacity:.45;cursor:not-allowed}
+  .st-small{font-size:11px;opacity:.8;margin-top:6px}
   `;
-  if (!document.getElementById("etapa3-style")) {
+  if (!document.getElementById("etapa34-style")) {
     const styleTag = document.createElement("style");
-    styleTag.id = "etapa3-style";
+    styleTag.id = "etapa34-style";
     styleTag.textContent = css;
     document.head.appendChild(styleTag);
   }
 
-  // cria barra de botões no game
+  // barra de botões
   if (!document.getElementById("et3-fabbar")) {
     const anchor = actionsDiv?.parentElement || gameScreen;
     const bar = document.createElement("div");
@@ -344,13 +439,20 @@ function injectEtapa3UI() {
     pressBtn.id = "press-btn";
     pressBtn.innerHTML = `Imprensa <span id="press-badge" class="et3-badge">0</span>`;
 
+    staffBtn = document.createElement("button");
+    staffBtn.className = "et3-btn";
+    staffBtn.id = "staff-btn";
+    staffBtn.textContent = "Assessores";
+
     bar.appendChild(calendarBtn);
     bar.appendChild(pressBtn);
+    bar.appendChild(staffBtn);
 
     if (anchor) anchor.appendChild(bar);
   } else {
     pressBtn = document.getElementById("press-btn");
     calendarBtn = document.getElementById("calendar-btn");
+    staffBtn = document.getElementById("staff-btn");
   }
 
   // overlay imprensa
@@ -412,21 +514,75 @@ function injectEtapa3UI() {
     calendarOverlay = document.getElementById("calendar-overlay");
   }
 
-  // bind eventos
+  // overlay staff
+  if (!document.getElementById("staff-overlay")) {
+    staffOverlay = document.createElement("div");
+    staffOverlay.className = "et3-overlay";
+    staffOverlay.id = "staff-overlay";
+    staffOverlay.style.display = "none";
+    staffOverlay.innerHTML = `
+      <div class="et3-panel">
+        <div class="et3-head">
+          <h3>Assessores e Bastidores</h3>
+          <button class="et3-close" id="staff-close">Fechar</button>
+        </div>
+        <div class="et3-body">
+          <div class="et3-card">
+            <h4>Equipe atual</h4>
+            <div id="staff-hired"></div>
+          </div>
+          <div class="et3-card">
+            <h4>Banco de talentos</h4>
+            <div id="staff-available"></div>
+            <div style="margin-top:10px">
+              <button class="st-btn" id="staff-refresh">Renovar banco</button>
+              <div class="st-small">Renovar altera os nomes disponíveis (custo político leve na mídia).</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(staffOverlay);
+  } else {
+    staffOverlay = document.getElementById("staff-overlay");
+  }
+
+  // bind
   if (pressBtn) pressBtn.addEventListener("click", () => openPress());
   if (calendarBtn) calendarBtn.addEventListener("click", () => openCalendar());
+  if (staffBtn) staffBtn.addEventListener("click", () => openStaff());
 
   const pressClose = document.getElementById("press-close");
   if (pressClose) pressClose.addEventListener("click", () => closePress());
   const calendarClose = document.getElementById("calendar-close");
   if (calendarClose) calendarClose.addEventListener("click", () => closeCalendar());
+  const staffClose = document.getElementById("staff-close");
+  if (staffClose) staffClose.addEventListener("click", () => closeStaff());
 
-  if (pressOverlay) {
-    pressOverlay.addEventListener("click", (e) => { if (e.target === pressOverlay) closePress(); });
+  const staffRefresh = document.getElementById("staff-refresh");
+  if (staffRefresh) {
+    staffRefresh.addEventListener("click", () => {
+      state.staff.availablePoolSeed = (state.staff.availablePoolSeed || 1) + 1;
+      state.mediaTone = clamp(state.mediaTone - 0.8);
+      pushNews({
+        id: uid(),
+        week: state.week,
+        year: state.year,
+        title: "Movimentação nos bastidores: troca no radar de assessores",
+        subtitle: "Imprensa nota mudanças na equipe e especula sobre estratégia.",
+        tone: "neutral",
+        tags: ["bastidores", "staff"],
+        impact: { mediaTone: -0.2 }
+      });
+      saveGame();
+      updateHeader();
+      renderStaff();
+    });
   }
-  if (calendarOverlay) {
-    calendarOverlay.addEventListener("click", (e) => { if (e.target === calendarOverlay) closeCalendar(); });
-  }
+
+  if (pressOverlay) pressOverlay.addEventListener("click", (e) => { if (e.target === pressOverlay) closePress(); });
+  if (calendarOverlay) calendarOverlay.addEventListener("click", (e) => { if (e.target === calendarOverlay) closeCalendar(); });
+  if (staffOverlay) staffOverlay.addEventListener("click", (e) => { if (e.target === staffOverlay) closeStaff(); });
 }
 
 // ===============================
@@ -443,11 +599,68 @@ function getProjectDef(id) { return projectCatalog.find(p => p.id === id) || nul
 function uid() { return `${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`; }
 
 function weeksToDate(from, to) {
-  // retorna diferença aproximada em semanas no mesmo ano/ciclo, sem calendário real
-  // (suficiente para “prazo narrativo”)
   const a = from.year * 52 + from.week;
   const b = to.year * 52 + to.week;
   return Math.max(0, b - a);
+}
+
+function ensureStaffState() {
+  if (!state.staff) state.staff = { hired: { chief: null, whip: null, press: null, econ: null, legal: null }, availablePoolSeed: 1 };
+  if (!state.staff.hired) state.staff.hired = { chief: null, whip: null, press: null, econ: null, legal: null };
+  if (!("availablePoolSeed" in state.staff)) state.staff.availablePoolSeed = 1;
+}
+
+function getHired(roleId) {
+  ensureStaffState();
+  return state.staff.hired[roleId] || null;
+}
+
+function setHired(roleId, staffObjOrNull) {
+  ensureStaffState();
+  state.staff.hired[roleId] = staffObjOrNull;
+}
+
+function getAllHired() {
+  ensureStaffState();
+  return Object.values(state.staff.hired).filter(Boolean);
+}
+
+function getStaffPassiveTotals() {
+  const totals = {
+    funds: 0, integrity: 0, congressSupport: 0, mediaTone: 0,
+    economy: 0, security: 0, services: 0, scandals: 0,
+    macro: { econVolatilityMult: 1 },
+    risk: { scandalEventMult: 1 },
+    crisis: { mediaShield: 0 },
+    project: { stallBuffer: 0, stallChanceMult: 1 },
+    weeklyCost: 0,
+  };
+
+  getAllHired().forEach(s => {
+    totals.weeklyCost += (s.weeklyCost || 0);
+
+    const eff = s.effects || {};
+    if (eff.passive) {
+      Object.keys(eff.passive).forEach(k => {
+        if (k in totals) totals[k] += eff.passive[k];
+      });
+    }
+    if (eff.macro?.econVolatilityMult != null) totals.macro.econVolatilityMult *= eff.macro.econVolatilityMult;
+    if (eff.risk?.scandalEventMult != null) totals.risk.scandalEventMult *= eff.risk.scandalEventMult;
+    if (eff.crisis?.mediaShield != null) totals.crisis.mediaShield += eff.crisis.mediaShield;
+
+    if (eff.project) {
+      if (eff.project.stallBuffer != null) totals.project.stallBuffer += eff.project.stallBuffer;
+      if (eff.project.stallChanceMult != null) totals.project.stallChanceMult *= eff.project.stallChanceMult;
+    }
+  });
+
+  totals.project.stallChanceMult = Math.max(0.50, Math.min(1.0, totals.project.stallChanceMult));
+  totals.macro.econVolatilityMult = Math.max(0.65, Math.min(1.0, totals.macro.econVolatilityMult));
+  totals.risk.scandalEventMult = Math.max(0.55, Math.min(1.0, totals.risk.scandalEventMult));
+  totals.crisis.mediaShield = Math.max(0, Math.min(0.55, totals.crisis.mediaShield));
+
+  return totals;
 }
 
 // ===============================
@@ -482,6 +695,7 @@ function loadGame() {
       news: Array.isArray(parsed.news) ? parsed.news : [],
       unreadNews: Number.isFinite(parsed.unreadNews) ? parsed.unreadNews : 0,
       calendar: { ...state.calendar, ...(parsed.calendar || {}) },
+      staff: { ...state.staff, ...(parsed.staff || {}) },
     };
 
     if (parsed.party?.id) {
@@ -489,7 +703,7 @@ function loadGame() {
       state.party = p;
     }
 
-    // garante nextElection coerente
+    ensureStaffState();
     recalcNextElectionIfNeeded();
 
     return state;
@@ -594,20 +808,20 @@ function renderHUD() {
 
   if (hudProjectPill) {
     const activeCount = state.activeProjects.length;
-    hudProjectPill.textContent = `Projetos: ${activeCount}`;
+    const staffCost = Math.round(getStaffPassiveTotals().weeklyCost);
+    hudProjectPill.textContent = `Projetos: ${activeCount} • Staff: -${staffCost}/sem`;
   }
 
-  // dicas rápidas + contagem até eleição (ETAPA 3)
   const tips = [];
-  if (state.congressSupport < 45) tips.push("Congresso baixo: articule alianças.");
-  if (state.mediaTone < 45) tips.push("Mídia hostil: transparência/competência.");
-  if (state.scandals > 55) tips.push("Escândalo alto: risco de travar projetos.");
-  if (state.economy < 45) tips.push("Economia fraca: estímulo pode ajudar.");
+  if (state.congressSupport < 45) tips.push("Congresso baixo: articule alianças (Articulador ajuda).");
+  if (state.mediaTone < 45) tips.push("Mídia hostil: fortaleça comunicação (Porta-voz ajuda).");
+  if (state.scandals > 55) tips.push("Escândalo alto: risco institucional (Jurídico ajuda).");
+  if (state.economy < 45) tips.push("Economia fraca: estabilize macro (Assessor econômico ajuda).");
+
   const weeksLeftToElection = weeksToDate({ week: state.week, year: state.year }, state.calendar.nextElection);
   tips.push(`Próxima janela eleitoral em ~${weeksLeftToElection} semana(s).`);
 
   if (hudNote) hudNote.textContent = tips.join(" ");
-
   updatePressBadge();
 }
 
@@ -695,8 +909,6 @@ function startProject(projectId) {
   });
 
   addFeed(`Projeto iniciado: ${def.title} (duração: ${def.totalWeeks} semanas).`);
-
-  // manchete de início
   pushNews(makeProjectNews(def, "start"));
 
   saveGame();
@@ -734,7 +946,21 @@ function cancelProject(projectId) {
 
 function computeProjectStall(def) {
   const stallIf = def.stallIf || {};
-  if (stallIf.congressBelow != null && state.congressSupport < stallIf.congressBelow) return true;
+  const staffTotals = getStaffPassiveTotals();
+
+  // “buffer” de articulação: permite ficar um pouco abaixo sem travar
+  const buffer = staffTotals.project.stallBuffer || 0;
+
+  if (stallIf.congressBelow != null) {
+    const threshold = stallIf.congressBelow - buffer;
+    if (state.congressSupport < threshold) {
+      // chance de travar mitigada pelo staff
+      const baseChance = 0.78; // travar quando muito abaixo
+      const mult = staffTotals.project.stallChanceMult || 1;
+      const chance = Math.max(0.35, baseChance * mult);
+      return Math.random() < chance;
+    }
+  }
   return false;
 }
 
@@ -795,7 +1021,6 @@ function tickProjectsOneWeek() {
       return;
     }
 
-    // destravou
     if (wasStalled && !stalled) pushNews(makeProjectNews(def, "resume"));
 
     applyProjectWeeklyEffects(def);
@@ -825,7 +1050,8 @@ function renderAgenda() {
   const office = currentOffice();
   const typeLabel = office.type === "executive" ? "Executivo" : "Legislativo";
   if (agendaSubtitle) {
-    agendaSubtitle.textContent = `Você está no ${typeLabel}. Projetos ativos aplicam efeitos semanais; se travarem, param de avançar.`;
+    const st = getStaffPassiveTotals();
+    agendaSubtitle.textContent = `Você está no ${typeLabel}. Projetos ativos aplicam efeitos semanais; se travarem, param de avançar. (Bônus staff: buffer ${st.project.stallBuffer} / chance x${st.project.stallChanceMult.toFixed(2)})`;
   }
 
   agendaActive.innerHTML = "";
@@ -937,14 +1163,16 @@ function renderAgenda() {
     });
   }
 
-  if (hudProjectPill) hudProjectPill.textContent = `Projetos: ${state.activeProjects.length}`;
+  if (hudProjectPill) {
+    const staffCost = Math.round(getStaffPassiveTotals().weeklyCost);
+    hudProjectPill.textContent = `Projetos: ${state.activeProjects.length} • Staff: -${staffCost}/sem`;
+  }
 }
 
 // ===============================
 // ETAPA 3: CALENDÁRIO
 // ===============================
 function recalcNextElectionIfNeeded() {
-  // define um “ciclo eleitoral” fixo para narrativa e progressão
   const cycle = state.calendar?.electionCycleWeeks || 16;
   const nowIndex = state.year * 52 + state.week;
   let nextIndex = state.calendar?.nextElection
@@ -952,7 +1180,6 @@ function recalcNextElectionIfNeeded() {
     : (state.year * 52 + cycle);
 
   if (nextIndex <= nowIndex) {
-    // pula para frente até ficar no futuro
     const diff = nowIndex - nextIndex;
     const steps = Math.floor(diff / cycle) + 1;
     nextIndex += steps * cycle;
@@ -962,10 +1189,7 @@ function recalcNextElectionIfNeeded() {
   if (state.calendar.nextElection.week === 0) state.calendar.nextElection.week = 52;
 }
 
-function openCalendar() {
-  renderCalendar();
-  calendarOverlay.style.display = "flex";
-}
+function openCalendar() { renderCalendar(); calendarOverlay.style.display = "flex"; }
 function closeCalendar() { calendarOverlay.style.display = "none"; }
 
 function renderCalendar() {
@@ -997,7 +1221,6 @@ function renderCalendar() {
     </div>
   `;
 
-  // Projetos/prazos
   if (!state.activeProjects.length) {
     projectsEl.innerHTML = `
       <div class="et3-newsitem">
@@ -1024,12 +1247,11 @@ function renderCalendar() {
 }
 
 // ===============================
-// ETAPA 3: NOTÍCIAS / SALA DE IMPRENSA
+// ETAPA 3: NOTÍCIAS / IMPRENSA
 // ===============================
 function pushNews(item) {
   if (!item) return;
 
-  // aplica impacto de manchete (leve, para dar “realismo”)
   if (item.impact) {
     const i = item.impact;
     if (i.mediaTone) state.mediaTone = clamp(state.mediaTone + i.mediaTone);
@@ -1087,7 +1309,6 @@ function makeProjectNews(def, phase) {
       impact: { mediaTone: +0.6, congressSupport: +0.6 },
     };
   }
-  // complete
   return {
     ...base,
     title: `Resultados: "${def.title}" é concluído`,
@@ -1099,115 +1320,41 @@ function makeProjectNews(def, phase) {
 }
 
 function buildWeeklyHeadlines() {
-  // Gera 1 a 3 manchetes por semana, baseado no estado.
   const n = (Math.random() < 0.35) ? 1 : (Math.random() < 0.75 ? 2 : 3);
-
   const candidates = [];
 
-  // Economia
   if (state.economy >= 62) {
-    candidates.push({
-      tone: "good",
-      title: "Indicadores econômicos surpreendem e mercado reage",
-      subtitle: "Especialistas revisam expectativas e governistas capitalizam narrativa.",
-      tags: ["economia", "mercado"],
-      impact: { mediaTone: +0.6, congressSupport: +0.4 },
-    });
+    candidates.push({ tone: "good", title: "Indicadores econômicos surpreendem e mercado reage", subtitle: "Especialistas revisam expectativas e governistas capitalizam narrativa.", tags: ["economia", "mercado"], impact: { mediaTone: +0.6, congressSupport: +0.4 } });
   } else if (state.economy <= 40) {
-    candidates.push({
-      tone: "bad",
-      title: "Pressão econômica aumenta e oposição cobra medidas",
-      subtitle: "Governo enfrenta ruído e vê base hesitar em votações-chave.",
-      tags: ["economia", "crise"],
-      impact: { mediaTone: -0.8, congressSupport: -0.6 },
-    });
+    candidates.push({ tone: "bad", title: "Pressão econômica aumenta e oposição cobra medidas", subtitle: "Governo enfrenta ruído e vê base hesitar em votações-chave.", tags: ["economia", "crise"], impact: { mediaTone: -0.8, congressSupport: -0.6 } });
   } else {
-    candidates.push({
-      tone: "neutral",
-      title: "Economia segue estável; expectativa se volta à pauta política",
-      subtitle: "Analistas veem pouco espaço para erro na comunicação do governo.",
-      tags: ["economia"],
-      impact: { mediaTone: +0.1 },
-    });
+    candidates.push({ tone: "neutral", title: "Economia segue estável; expectativa se volta à pauta política", subtitle: "Analistas veem pouco espaço para erro na comunicação do governo.", tags: ["economia"], impact: { mediaTone: +0.1 } });
   }
 
-  // Segurança
   if (state.security >= 65) {
-    candidates.push({
-      tone: "good",
-      title: "Queda em indicadores de violência vira vitrine do governo",
-      subtitle: "Aliados defendem ampliação do modelo; críticos pedem transparência.",
-      tags: ["segurança", "gestão"],
-      impact: { mediaTone: +0.5 },
-    });
+    candidates.push({ tone: "good", title: "Queda em indicadores de violência vira vitrine do governo", subtitle: "Aliados defendem ampliação do modelo; críticos pedem transparência.", tags: ["segurança", "gestão"], impact: { mediaTone: +0.5 } });
   } else if (state.security <= 40) {
-    candidates.push({
-      tone: "bad",
-      title: "Crise de segurança domina debate e derruba confiança",
-      subtitle: "Governo é pressionado por respostas rápidas e coordenadas.",
-      tags: ["segurança", "crise"],
-      impact: { mediaTone: -0.9, congressSupport: -0.4 },
-    });
+    candidates.push({ tone: "bad", title: "Crise de segurança domina debate e derruba confiança", subtitle: "Governo é pressionado por respostas rápidas e coordenadas.", tags: ["segurança", "crise"], impact: { mediaTone: -0.9, congressSupport: -0.4 } });
   }
 
-  // Serviços
   if (state.services >= 65) {
-    candidates.push({
-      tone: "good",
-      title: "Serviços públicos melhoram e ampliam capital político",
-      subtitle: "Efeito aparece em regiões-chave e reduz ruído social.",
-      tags: ["serviços", "saúde/educação"],
-      impact: { mediaTone: +0.4 },
-    });
+    candidates.push({ tone: "good", title: "Serviços públicos melhoram e ampliam capital político", subtitle: "Efeito aparece em regiões-chave e reduz ruído social.", tags: ["serviços", "saúde/educação"], impact: { mediaTone: +0.4 } });
   } else if (state.services <= 40) {
-    candidates.push({
-      tone: "bad",
-      title: "Filas e desgaste em serviços aumentam pressão nas redes",
-      subtitle: "Base popular oscila e governo tenta conter repercussão.",
-      tags: ["serviços", "pressão social"],
-      impact: { mediaTone: -0.7 },
-    });
+    candidates.push({ tone: "bad", title: "Filas e desgaste em serviços aumentam pressão nas redes", subtitle: "Base popular oscila e governo tenta conter repercussão.", tags: ["serviços", "pressão social"], impact: { mediaTone: -0.7 } });
   }
 
-  // Escândalos (sempre com peso narrativo)
   if (state.scandals >= 60) {
-    candidates.push({
-      tone: "bad",
-      title: "Nova denúncia amplia crise e eleva risco institucional",
-      subtitle: "Planalto/gestão reage; aliados cobram mudança de rota.",
-      tags: ["escândalo", "investigação"],
-      impact: { mediaTone: -1.2, congressSupport: -0.8, integrity: -0.4 },
-    });
+    candidates.push({ tone: "bad", title: "Nova denúncia amplia crise e eleva risco institucional", subtitle: "Governo reage; aliados cobram mudança de rota.", tags: ["escândalo", "investigação"], impact: { mediaTone: -1.2, congressSupport: -0.8, integrity: -0.4 } });
   } else if (state.scandals <= 18 && state.integrity >= 55) {
-    candidates.push({
-      tone: "good",
-      title: "Ambiente político esfria e governo ganha fôlego",
-      subtitle: "Transparência e organização reduzem risco de crise.",
-      tags: ["governança", "integridade"],
-      impact: { mediaTone: +0.5, congressSupport: +0.3 },
-    });
+    candidates.push({ tone: "good", title: "Ambiente político esfria e governo ganha fôlego", subtitle: "Transparência e organização reduzem risco de crise.", tags: ["governança", "integridade"], impact: { mediaTone: +0.5, congressSupport: +0.3 } });
   }
 
-  // Mídia
   if (state.mediaTone <= 35) {
-    candidates.push({
-      tone: "bad",
-      title: "Mídia endurece cobertura e pauta vira negativa",
-      subtitle: "Equipe de comunicação tenta reagir com dados e agenda propositiva.",
-      tags: ["mídia", "comunicação"],
-      impact: { popularity: 0, mediaTone: -0.2 },
-    });
+    candidates.push({ tone: "bad", title: "Mídia endurece cobertura e pauta vira negativa", subtitle: "Equipe de comunicação tenta reagir com dados e agenda propositiva.", tags: ["mídia", "comunicação"], impact: { mediaTone: -0.2 } });
   } else if (state.mediaTone >= 70) {
-    candidates.push({
-      tone: "good",
-      title: "Cobertura melhora e governo emplaca narrativa da semana",
-      subtitle: "Aliados usam manchetes como ativo para coalizão.",
-      tags: ["mídia", "narrativa"],
-      impact: { congressSupport: +0.4 },
-    });
+    candidates.push({ tone: "good", title: "Cobertura melhora e governo emplaca narrativa da semana", subtitle: "Aliados usam manchetes como ativo para coalizão.", tags: ["mídia", "narrativa"], impact: { congressSupport: +0.4 } });
   }
 
-  // remove duplicação e sorteia
   const picked = [];
   for (let i = 0; i < n; i++) {
     const pool = candidates.filter(x => !picked.includes(x));
@@ -1232,12 +1379,10 @@ function buildWeeklyHeadlines() {
 function openPress() {
   renderPress();
   pressOverlay.style.display = "flex";
-  // ao abrir, marca como lidas
   state.unreadNews = 0;
   saveGame();
   updatePressBadge();
 }
-
 function closePress() { pressOverlay.style.display = "none"; }
 
 function renderPress() {
@@ -1273,7 +1418,6 @@ function renderPress() {
     ticker.textContent = `${top.title} — ${top.subtitle}`;
   }
 
-  // resumo: “narrativa”
   const last10 = state.news.slice(0, 10);
   const good = last10.filter(x => x.tone === "good").length;
   const bad = last10.filter(x => x.tone === "bad").length;
@@ -1281,13 +1425,267 @@ function renderPress() {
 
   summary.innerHTML = `
     <div class="et3-row"><span>Últimas 10 semanas</span><span>${good} boa(s) • ${neutral} neutra(s) • ${bad} ruim(ns)</span></div>
-    <div class="et3-row"><span>Tom da mídia (agora)</span><span>${Math.round(state.mediaTone)}%</span></div>
+    <div class="et3-row"><span>Tom da mídia</span><span>${Math.round(state.mediaTone)}%</span></div>
     <div class="et3-row"><span>Apoio no Congresso</span><span>${Math.round(state.congressSupport)}%</span></div>
     <div class="et3-row"><span>Economia</span><span>${Math.round(state.economy)}%</span></div>
     <div class="et3-row"><span>Serviços</span><span>${Math.round(state.services)}%</span></div>
     <div class="et3-row"><span>Segurança</span><span>${Math.round(state.security)}%</span></div>
     <div class="et3-row"><span>Escândalo</span><span>${Math.round(state.scandals)}%</span></div>
   `;
+}
+
+// ===============================
+// ETAPA 4: STAFF (UI + LÓGICA)
+// ===============================
+function openStaff() {
+  renderStaff();
+  staffOverlay.style.display = "flex";
+}
+function closeStaff() { staffOverlay.style.display = "none"; }
+
+function getRoleDef(roleId) {
+  return staffRoles.find(r => r.roleId === roleId) || null;
+}
+
+function getAvailableStaffForRole(roleId) {
+  const role = getRoleDef(roleId);
+  if (!role) return [];
+
+  // “pool” determinístico por seed: muda quando renovar
+  const seed = state.staff?.availablePoolSeed || 1;
+  const pool = role.pool.slice();
+
+  // simples shuffle determinístico usando seed
+  let x = (seed * 9301 + 49297) % 233280;
+  function rand() { x = (x * 9301 + 49297) % 233280; return x / 233280; }
+  for (let i = pool.length - 1; i > 0; i--) {
+    const j = Math.floor(rand() * (i + 1));
+    [pool[i], pool[j]] = [pool[j], pool[i]];
+  }
+
+  // retorna top 2-3 opções
+  return pool.slice(0, 3);
+}
+
+function hireStaff(roleId, staffObj) {
+  const role = getRoleDef(roleId);
+  if (!role) return;
+
+  // cargo mínimo (se quiser travar no futuro por cargo)
+  if (state.officeIndex < (role.minOfficeIndex || 0)) {
+    addFeed(`Você ainda não tem estrutura para contratar: ${role.title}.`);
+    return;
+  }
+
+  const already = getHired(roleId);
+  if (already) {
+    openModal(
+      "Substituir assessor",
+      `Você já tem ${role.title} (${already.name}). Substituir por ${staffObj.name}? (gera ruído na mídia)`,
+      [
+        {
+          label: "Substituir",
+          type: "primary",
+          onClick: () => {
+            setHired(roleId, staffObj);
+            state.mediaTone = clamp(state.mediaTone - 1.2);
+            addFeed(`Você substituiu ${role.title}: agora é ${staffObj.name} (nível ${staffObj.level}).`);
+            pushNews({
+              id: uid(),
+              week: state.week,
+              year: state.year,
+              title: `Mudança no ${role.title} chama atenção`,
+              subtitle: "Imprensa avalia impacto e oposição lê sinal político.",
+              tone: "neutral",
+              tags: ["bastidores", "staff"],
+              impact: { mediaTone: -0.2 }
+            });
+            saveGame();
+            updateHeader();
+            renderStaff();
+          }
+        },
+        { label: "Cancelar", type: "secondary" }
+      ]
+    );
+    return;
+  }
+
+  setHired(roleId, staffObj);
+  state.mediaTone = clamp(state.mediaTone + 0.4);
+  addFeed(`Contratado: ${role.title} — ${staffObj.name} (nível ${staffObj.level}).`);
+  pushNews({
+    id: uid(),
+    week: state.week,
+    year: state.year,
+    title: `Bastidores: ${role.title} reforçado`,
+    subtitle: `${staffObj.name} assume com promessa de profissionalizar a operação.`,
+    tone: "good",
+    tags: ["bastidores", "staff"],
+    impact: { mediaTone: +0.2 }
+  });
+
+  saveGame();
+  updateHeader();
+  renderStaff();
+}
+
+function fireStaff(roleId) {
+  const role = getRoleDef(roleId);
+  const hired = getHired(roleId);
+  if (!role || !hired) return;
+
+  openModal(
+    "Demitir assessor",
+    `Demitir ${role.title} (${hired.name})? Isso gera desgaste e aumenta risco de instabilidade.`,
+    [
+      {
+        label: "Demitir",
+        type: "secondary",
+        onClick: () => {
+          setHired(roleId, null);
+          state.mediaTone = clamp(state.mediaTone - 2.0);
+          state.congressSupport = clamp(state.congressSupport - 0.8);
+          addFeed(`Você demitiu ${role.title}: ${hired.name}.`);
+          pushNews({
+            id: uid(),
+            week: state.week,
+            year: state.year,
+            title: `Crise interna: saída no ${role.title}`,
+            subtitle: "Bastidores falam em tensão e recalibragem de rota.",
+            tone: "bad",
+            tags: ["bastidores", "staff"],
+            impact: { mediaTone: -0.5, congressSupport: -0.2 }
+          });
+          saveGame();
+          updateHeader();
+          renderStaff();
+        }
+      },
+      { label: "Cancelar", type: "primary" }
+    ]
+  );
+}
+
+function renderStaff() {
+  const hiredEl = document.getElementById("staff-hired");
+  const availEl = document.getElementById("staff-available");
+  if (!hiredEl || !availEl) return;
+
+  ensureStaffState();
+
+  const totals = getStaffPassiveTotals();
+  const cost = Math.round(totals.weeklyCost);
+
+  const hiredCards = staffRoles.map(role => {
+    const hired = getHired(role.roleId);
+    if (!hired) {
+      return `
+        <div class="st-role">
+          <div class="st-role-top">
+            <div>
+              <div class="st-role-title">${role.title} <span class="st-pill">VAGO</span></div>
+              <div class="st-role-sub">${role.desc}</div>
+            </div>
+            <div class="st-pill">Custo: —</div>
+          </div>
+          <div class="st-small">Contrate alguém no Banco de Talentos.</div>
+        </div>
+      `;
+    }
+
+    const passive = hired.effects?.passive || {};
+    const passiveTxt = Object.keys(passive).length
+      ? Object.entries(passive).map(([k,v]) => `${k} ${v >= 0 ? "+" : ""}${Number(v).toFixed(2)}/sem`).join(" • ")
+      : "Sem bônus passivo";
+
+    return `
+      <div class="st-role">
+        <div class="st-role-top">
+          <div>
+            <div class="st-role-title">${role.title} <span class="st-pill">Nível ${hired.level}</span></div>
+            <div class="st-role-sub"><strong>${hired.name}</strong> — ${role.desc}</div>
+          </div>
+          <div class="st-pill">-${hired.weeklyCost}/sem</div>
+        </div>
+        <div class="st-small">${passiveTxt}</div>
+        <div class="st-actions">
+          <button class="st-btn danger" data-fire="${role.roleId}">Demitir</button>
+        </div>
+      </div>
+    `;
+  }).join("");
+
+  hiredEl.innerHTML = `
+    <div class="et3-newsitem">
+      <strong>Custo semanal total do staff</strong>
+      <div class="et3-sub">Você paga automaticamente toda semana. Se faltar fundos, sua governabilidade sofre.</div>
+      <div class="et3-meta">
+        <span class="et3-tag">Custo: -${cost}/sem</span>
+        <span class="et3-tag">Buffer projetos: ${totals.project.stallBuffer}</span>
+        <span class="et3-tag">Chance travar x${totals.project.stallChanceMult.toFixed(2)}</span>
+        <span class="et3-tag">Blindagem mídia: ${(totals.crisis.mediaShield*100).toFixed(0)}%</span>
+        <span class="et3-tag">Risco escândalo x${totals.risk.scandalEventMult.toFixed(2)}</span>
+      </div>
+    </div>
+    <div class="st-grid">${hiredCards}</div>
+  `;
+
+  hiredEl.querySelectorAll("[data-fire]").forEach(btn => {
+    btn.addEventListener("click", () => fireStaff(btn.getAttribute("data-fire")));
+  });
+
+  // Banco de talentos
+  const availCards = staffRoles.map(role => {
+    const hired = getHired(role.roleId);
+    const options = getAvailableStaffForRole(role.roleId);
+
+    const optHtml = options.map(opt => {
+      const passive = opt.effects?.passive || {};
+      const passiveTxt = Object.keys(passive).length
+        ? Object.entries(passive).map(([k,v]) => `${k} ${v >= 0 ? "+" : ""}${Number(v).toFixed(2)}/sem`).join(" • ")
+        : "Sem bônus passivo";
+
+      const isSame = hired && hired.id === opt.id;
+      const canHire = !isSame;
+
+      return `
+        <div class="st-role" style="margin-bottom:10px">
+          <div class="st-role-top">
+            <div>
+              <div class="st-role-title">${opt.name} <span class="st-pill">Nível ${opt.level}</span></div>
+              <div class="st-role-sub">${passiveTxt}</div>
+            </div>
+            <div class="st-pill">-${opt.weeklyCost}/sem</div>
+          </div>
+          <div class="st-actions">
+            <button class="st-btn primary" data-hire="${role.roleId}::${opt.id}" ${canHire ? "" : "disabled"}>${hired ? "Substituir" : "Contratar"}</button>
+          </div>
+        </div>
+      `;
+    }).join("");
+
+    return `
+      <div class="et3-newsitem">
+        <strong>${role.title}</strong>
+        <div class="et3-sub">${role.desc}</div>
+        ${optHtml}
+      </div>
+    `;
+  }).join("");
+
+  availEl.innerHTML = availCards;
+
+  availEl.querySelectorAll("[data-hire]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const raw = btn.getAttribute("data-hire");
+      const [roleId, staffId] = raw.split("::");
+      const role = getRoleDef(roleId);
+      const opt = role?.pool?.find(x => x.id === staffId);
+      if (!opt) return;
+      hireStaff(roleId, opt);
+    });
+  });
 }
 
 // ===============================
@@ -1299,25 +1697,62 @@ function advanceTime(weeks = 1) {
     state.week += 1;
     if (state.week > 52) { state.week = 1; state.year += 1; }
 
-    // macro drift
-    state.economy = clamp(state.economy + rnd(-1.5, 1.2));
+    ensureStaffState();
+    const staffTotals = getStaffPassiveTotals();
+
+    // 1) folha de pagamento
+    const payroll = staffTotals.weeklyCost || 0;
+    if (payroll > 0) {
+      state.funds = clamp(state.funds - payroll);
+      if (state.funds <= 3) {
+        // crise de caixa: instabilidade
+        state.congressSupport = clamp(state.congressSupport - 1.5);
+        state.mediaTone = clamp(state.mediaTone - 1.0);
+        addFeed("Alerta: caixa apertado. Bastidores percebem fragilidade política.");
+        pushNews({
+          id: uid(),
+          week: state.week,
+          year: state.year,
+          title: "Bastidores sentem fragilidade fiscal e cobram ajustes",
+          subtitle: "Aliados hesitam; oposição pressiona por narrativa de incompetência.",
+          tone: "bad",
+          tags: ["fiscal", "bastidores"],
+          impact: { mediaTone: -0.3, congressSupport: -0.4 }
+        });
+      }
+    }
+
+    // 2) bônus passivos do staff (por semana)
+    state.funds = clamp(state.funds + staffTotals.funds);
+    state.integrity = clamp(state.integrity + staffTotals.integrity);
+    state.congressSupport = clamp(state.congressSupport + staffTotals.congressSupport);
+    state.mediaTone = clamp(state.mediaTone + staffTotals.mediaTone);
+    state.economy = clamp(state.economy + staffTotals.economy);
+    state.security = clamp(state.security + staffTotals.security);
+    state.services = clamp(state.services + staffTotals.services);
+    state.scandals = clamp(state.scandals + staffTotals.scandals);
+
+    // 3) macro drift (com volatilidade ajustada pelo assessor econômico)
+    const vol = staffTotals.macro.econVolatilityMult || 1;
+    state.economy = clamp(state.economy + rnd(-1.5 * vol, 1.2 * vol));
     state.security = clamp(state.security + rnd(-1.2, 1.0));
     state.services = clamp(state.services + rnd(-1.0, 1.2));
 
-    // mídia ajusta
+    // 4) mídia ajusta
     const mediaPull = (50 - state.mediaTone) * 0.06;
     state.mediaTone = clamp(state.mediaTone + mediaPull - state.scandals * 0.01 + (state.integrity - 50) * 0.01);
 
-    // escândalo tende a subir se integridade baixa
+    // 5) escândalo tende a subir se integridade baixa (com mitigação do jurídico)
     state.scandals = clamp(state.scandals + (50 - state.integrity) * 0.03 + rnd(-0.8, 1.2));
 
     // ETAPA 2: tick projetos
     tickProjectsOneWeek();
 
-    // eventos aleatórios
-    if (Math.random() < 0.22) triggerRandomEvent();
+    // eventos aleatórios (com mitigação do jurídico)
+    const scandalMult = staffTotals.risk.scandalEventMult || 1;
+    if (Math.random() < (0.22 * scandalMult)) triggerRandomEvent();
 
-    // ETAPA 3: manchetes semanais (sempre)
+    // ETAPA 3: manchetes semanais
     buildWeeklyHeadlines();
 
     // calendário
@@ -1330,6 +1765,7 @@ function advanceTime(weeks = 1) {
   if (agendaOverlay && !agendaOverlay.classList.contains("hidden")) renderAgenda();
   if (pressOverlay && pressOverlay.style.display === "flex") renderPress();
   if (calendarOverlay && calendarOverlay.style.display === "flex") renderCalendar();
+  if (staffOverlay && staffOverlay.style.display === "flex") renderStaff();
 }
 
 function triggerRandomEvent() {
@@ -1628,9 +2064,13 @@ function actionSanction() {
 }
 
 function actionCrisis() {
+  const staffTotals = getStaffPassiveTotals();
+  const shield = staffTotals.crisis.mediaShield || 0; // 0..0.55
+  const mediaBuff = Math.round(shield * 10) / 10; // exibição simples
+
   openModal(
     "Gerenciar crise",
-    "Uma crise estourou. Como você responde?",
+    `Uma crise estourou. (Blindagem do Porta-voz: ~${Math.round(shield * 100)}%) Como você responde?`,
     [
       {
         label: "Coletiva + transparência",
@@ -1639,7 +2079,7 @@ function actionCrisis() {
           applyWorldDelta({
             funds: -4,
             integrity: +3,
-            mediaTone: +3,
+            mediaTone: +(3 + mediaBuff),
             scandals: -4,
             groupDelta: { classeMedia: +2, jovens: +1 },
             logText: "Você enfrentou a crise com transparência e reduziu danos.",
@@ -1652,7 +2092,7 @@ function actionCrisis() {
         onClick: () =>
           applyWorldDelta({
             integrity: -6,
-            mediaTone: -6,
+            mediaTone: -(6 - mediaBuff),
             scandals: +4,
             congressSupport: +1,
             groupDelta: { religiosos: +1, classeMedia: -3, jovens: -2 },
@@ -1996,10 +2436,10 @@ function advanceOffice() {
 
     Object.keys(state.groups).forEach((k) => state.groups[k] = clamp(state.groups[k] + rnd(1, 3)));
 
-    // troca de agenda ao subir
+    // projetos resetam ao subir
     state.activeProjects = [];
 
-    // recalcula calendário (novo ciclo narrativo)
+    // staff permanece (AAA: equipe vira ativo estratégico), mas custa manter
     recalcNextElectionIfNeeded();
 
     saveGame();
@@ -2019,10 +2459,11 @@ function advanceOffice() {
 function beginMandate(newOffice = false) {
   showScreen("game");
   if (newOffice) feedDiv.innerHTML = "";
+  ensureStaffState();
   updateHeader();
   renderActions();
 
-  injectEtapa3UI();
+  injectEtapa34UI();
   updatePressBadge();
 
   addFeed(newOffice ? `Novo mandato: ${currentOffice().name}.` : `Retomando mandato como ${currentOffice().name}.`);
@@ -2095,6 +2536,11 @@ newGameBtn.addEventListener("click", () => {
       nextElection: { week: 16, year: 2025 },
     },
 
+    staff: {
+      hired: { chief: null, whip: null, press: null, econ: null, legal: null },
+      availablePoolSeed: 1,
+    },
+
     timeline: [],
   };
 
@@ -2138,6 +2584,10 @@ confirmSelectionBtn.addEventListener("click", () => {
   state.news = [];
   state.unreadNews = 0;
   state.calendar = state.calendar || { electionCycleWeeks: 16, nextElection: { week: 16, year: 2025 } };
+
+  state.staff = state.staff || { hired: { chief: null, whip: null, press: null, econ: null, legal: null }, availablePoolSeed: 1 };
+  ensureStaffState();
+
   recalcNextElectionIfNeeded();
 
   pushNews({
@@ -2186,6 +2636,7 @@ resetBtn.addEventListener("click", () => {
       news: [],
       unreadNews: 0,
       calendar: { electionCycleWeeks: 16, nextElection: { week: 16, year: 2025 } },
+      staff: { hired: { chief: null, whip: null, press: null, econ: null, legal: null }, availablePoolSeed: 1 },
       timeline: [],
     };
 
@@ -2216,11 +2667,11 @@ function init() {
   renderParties();
   updateContinueVisibility();
 
-  // se tiver save, recalcula calendário sem “abrir o jogo”
   const raw = localStorage.getItem(STORAGE_KEY);
   if (raw) {
     const loaded = loadGame();
     if (loaded) {
+      ensureStaffState();
       recalcNextElectionIfNeeded();
       saveGame();
     }

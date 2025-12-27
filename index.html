@@ -4,7 +4,6 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
   <title>Simulador Político</title>
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link rel="stylesheet" href="style.css" />
   <meta name="theme-color" content="#0b1220" />
 </head>
@@ -18,7 +17,6 @@
   </header>
 
   <main id="app-root" class="app-root">
-    <!-- A UI é injetada dinamicamente por src/ui/app.js -->
     <section class="screen screen--menu" id="screen-menu">
       <div class="card card--menu">
         <h1>Iniciar</h1>
@@ -28,30 +26,42 @@
         </div>
       </div>
     </section>
+
     <section class="screen screen--game" id="screen-game" hidden>
       <aside class="sidebar">
         <div class="panel">
           <h3>Status</h3>
+          <div class="stat"><span>Data:</span> <strong id="ui-data">Ano 1 • Mês 1</strong></div>
           <div class="stat"><span>Turno:</span> <strong id="ui-turno">1</strong></div>
+          <div class="stat"><span>Mandato:</span> <strong id="ui-mandato">-</strong></div>
           <div class="stat"><span>Popularidade:</span> <strong id="ui-popularidade">50%</strong></div>
           <div class="stat"><span>Recursos:</span> <strong id="ui-recursos">0</strong></div>
           <div class="stat"><span>Cargo:</span> <strong id="ui-cargo">-</strong></div>
         </div>
+
         <div class="panel">
           <h3>Ações</h3>
-          <button id="btn-next" class="btn primary full">Avançar Turno</button>
+          <button id="btn-next" class="btn primary full">Avançar Mês</button>
         </div>
       </aside>
+
       <section class="content">
         <div class="grid">
+          <div class="card">
+            <h3>Eleições</h3>
+            <div id="ui-eleicao" class="list"></div>
+          </div>
+
           <div class="card">
             <h3>Projetos de Lei</h3>
             <div id="ui-leis" class="list"></div>
           </div>
+
           <div class="card">
             <h3>Eventos</h3>
             <div id="ui-evento" class="list"></div>
           </div>
+
           <div class="card">
             <h3>Logs</h3>
             <div id="ui-logs" class="logs"></div>
@@ -62,12 +72,8 @@
   </main>
 
   <footer class="app-footer">
-    <small>Fundação • Parte 1 • Data-Driven • Save Versionado</small>
+    <small>Parte 2 • Eleições + Progressão</small>
   </footer>
-
-  <!-- Ordem IMPORTANTE: legado (se houver) → loader de dados → save → core → ui → main -->
-  <!-- Se você ainda tiver um script.js legado, pode manter abaixo. Não é obrigatório. -->
-  <!-- <script src="script.js"></script> -->
 
   <script src="src/platform/dataLoader.js"></script>
   <script src="src/storage/save.js"></script>

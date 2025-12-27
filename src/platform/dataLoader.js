@@ -1,48 +1,42 @@
-/**
- * DataLoader — carrega conteúdo JSON em window.SIM_POL.data
- * Seguro: se falhar, usa defaults e não quebra o jogo.
- */
 (function initDataLoader(){
   window.SIM_POL = window.SIM_POL || {};
 
-  const DEFAULTS = {
-    cargos: [],
-    leis: [],
-    eventos: [],
-    carreira: []
-  };
-
-  async function fetchJson(path) {
+  async function fetchJson(path){
     const res = await fetch(path, { cache: "no-store" });
     if (!res.ok) throw new Error(`Falha ao carregar ${path}: ${res.status}`);
-    return res.json();
+    return await res.json();
   }
 
-  async function loadAllData() {
-    const [cargos, leis, eventos, carreira] = await Promise.all([
-      fetchJson("/data/cargos.json"),
-      fetchJson("/data/leis.json"),
-      fetchJson("/data/eventos.json"),
-      fetchJson("/data/carreira.json")
+  async function bootstrapData(){
+    const [cargos, leis, eventos, carreira, regras, politicas, tecnicos, npcs, partidos, acoes] = await Promise.all([
+      fetchJson("/data/cargos.json").catch(()=>[]),
+      fetchJson("/data/leis.json").catch(()=>[]),
+      fetchJson("/data/eventos.json").catch(()=>[]),
+      fetchJson("/data/carreira.json").catch(()=>[]),
+      fetchJson("/data/regras_legislativo.json").catch(()=>({ casas:{} })),
+      fetchJson("/data/politicas.json").catch(()=>[]),
+      fetchJson("/data/tecnicos.json").catch(()=>[]),
+      fetchJson("/data/npcs.json").catch(()=>[]),
+      fetchJson("/data/partidos.json").catch(()=>[]),
+      fetchJson("/data/acoes.json").catch(()=>[])
     ]);
-    return { cargos, leis, eventos, carreira };
+
+    const data = {
+      cargos,
+      leis,
+      eventos,
+      carreira,
+      regras_legislativo: regras,
+      politicas,
+      tecnicos,
+      npcs,
+      partidos,
+      acoes
+    };
+
+    window.SIM_POL.data = data;
+    return data;
   }
 
-  async function bootstrapData() {
-    try {
-      const data = await loadAllData();
-      window.SIM_POL.data = data;
-      window.SIM_POL.flags = window.SIM_POL.flags || {};
-      window.SIM_POL.flags.dataDriven = true;
-      console.debug("[SIM_POL] Data carregada:", data);
-      return data;
-    } catch (err) {
-      window.SIM_POL.data = { ...DEFAULTS };
-      console.debug("[SIM_POL] DataLoader falhou (ignorado).", err);
-      return window.SIM_POL.data;
-    }
-  }
-
-  window.SIM_POL.loadAllData = loadAllData;
   window.SIM_POL.bootstrapData = bootstrapData;
 })();

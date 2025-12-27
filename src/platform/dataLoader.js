@@ -9,6 +9,7 @@
     cargos: [],
     leis: [],
     eventos: [],
+    carreira: []
   };
 
   async function fetchJson(path) {
@@ -18,12 +19,13 @@
   }
 
   async function loadAllData() {
-    const [cargos, leis, eventos] = await Promise.all([
+    const [cargos, leis, eventos, carreira] = await Promise.all([
       fetchJson("/data/cargos.json"),
       fetchJson("/data/leis.json"),
       fetchJson("/data/eventos.json"),
+      fetchJson("/data/carreira.json")
     ]);
-    return { cargos, leis, eventos };
+    return { cargos, leis, eventos, carreira };
   }
 
   async function bootstrapData() {

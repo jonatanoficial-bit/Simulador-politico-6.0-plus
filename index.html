@@ -11,7 +11,6 @@
   <link rel="manifest" href="/manifest.webmanifest" />
   <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
 
-  <!-- ✅ TEMA AAA CINEMATOGRÁFICO -->
   <link rel="stylesheet" href="/src/ui/theme.css" />
 
   <style>
@@ -46,7 +45,6 @@
 </head>
 
 <body>
-  <!-- ✅ Grain cinematográfico -->
   <div id="filmGrain"></div>
 
   <div id="debugBar">
@@ -120,7 +118,8 @@
           "/src/core/save.js",
           "/src/core/sim.js",
           "/src/ui/app.js",
-          "/src/ui/bg.js"
+          "/src/ui/bg.js",
+          "/src/ui/aaa.js"
         ];
 
         for (const src of scripts){
@@ -136,7 +135,7 @@
         }
 
         setStatus("ok", "scripts carregados");
-        logLine("ok", "Cinemático AAA aplicado.");
+        logLine("ok", "AAA HUD premium aplicado.");
       }
 
       boot();

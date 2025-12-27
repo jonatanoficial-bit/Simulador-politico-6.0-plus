@@ -1,257 +1,79 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Simulador Político 6.0 Plus</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <title>Simulador Político</title>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link rel="stylesheet" href="style.css" />
+  <meta name="theme-color" content="#0b1220" />
 </head>
 <body>
-  <!-- TELA DE CAPA -->
-  <section id="start-screen" class="screen active">
-    <div class="screen-overlay"></div>
-    <div class="card start-card">
-      <h1>Simulador Político 6.0 Plus</h1>
-      <p class="subtitle">Viva a experiência da política brasileira de forma realista.</p>
-      <div class="start-buttons">
-        <button id="new-game-btn" class="btn primary">Novo jogo</button>
-        <button id="continue-btn" class="btn secondary" style="display:none;">Continuar jogo</button>
-      </div>
-    </div>
-  </section>
+  <header class="app-header">
+    <div class="brand">Simulador Político</div>
+    <nav class="header-actions">
+      <button id="btn-save" class="btn ghost">Salvar</button>
+      <button id="btn-exit" class="btn ghost">Sair</button>
+    </nav>
+  </header>
 
-  <!-- TELA DE SELEÇÃO -->
-  <section id="selection-screen" class="screen">
-    <div class="card selection-card">
-      <h2>Escolha seu partido</h2>
-
-      <div id="party-list" class="party-list"></div>
-
-      <div class="field">
-        <label for="player-name">Seu nome</label>
-        <input id="player-name" type="text" placeholder="Digite seu nome" />
-      </div>
-
-      <div class="selection-actions">
-        <button id="confirm-selection-btn" class="btn primary">Confirmar</button>
-        <button id="back-to-start-btn" class="btn ghost">Voltar</button>
-      </div>
-    </div>
-  </section>
-
-  <!-- TELA DO JOGO -->
-  <section id="game-screen" class="screen">
-    <div class="screen-overlay game-overlay"></div>
-
-    <div class="game-container">
-      <header class="game-header">
-        <div class="player-info">
-          <span id="player-info-text"></span>
-          <span id="office-text"></span>
+  <main id="app-root" class="app-root">
+    <!-- A UI é injetada dinamicamente por src/ui/app.js -->
+    <section class="screen screen--menu" id="screen-menu">
+      <div class="card card--menu">
+        <h1>Iniciar</h1>
+        <div class="menu-actions">
+          <button id="btn-new" class="btn primary">Novo Jogo</button>
+          <button id="btn-load" class="btn">Carregar Jogo</button>
         </div>
-
-        <div class="stats">
-          <span>Popularidade: <strong id="stat-popularity">0</strong>%</span>
-          <span>Fundos: <strong id="stat-funds">0</strong></span>
-          <span>Integridade: <strong id="stat-integrity">0</strong>%</span>
+      </div>
+    </section>
+    <section class="screen screen--game" id="screen-game" hidden>
+      <aside class="sidebar">
+        <div class="panel">
+          <h3>Status</h3>
+          <div class="stat"><span>Turno:</span> <strong id="ui-turno">1</strong></div>
+          <div class="stat"><span>Popularidade:</span> <strong id="ui-popularidade">50%</strong></div>
+          <div class="stat"><span>Recursos:</span> <strong id="ui-recursos">0</strong></div>
+          <div class="stat"><span>Cargo:</span> <strong id="ui-cargo">-</strong></div>
         </div>
-
-        <div class="header-actions">
-          <button id="open-agenda-btn" class="btn small secondary">Agenda</button>
-          <button id="reset-btn" class="btn small ghost">Novo jogo</button>
+        <div class="panel">
+          <h3>Ações</h3>
+          <button id="btn-next" class="btn primary full">Avançar Turno</button>
         </div>
-      </header>
-
-      <main class="game-main">
-        <!-- HUD AAA -->
-        <section class="hud-grid">
-          <div class="hud-card">
-            <div class="hud-title">
-              <span>Painel de Situação</span>
-              <span class="hud-pill" id="hud-project-pill">Projetos: 0</span>
-            </div>
-
-            <div class="hud-row">
-              <div class="hud-label">Apoio no Congresso</div>
-              <div class="meter"><div id="meter-congress" class="meter-fill"></div></div>
-              <div id="meter-congress-val" class="hud-val">0%</div>
-            </div>
-
-            <div class="hud-row">
-              <div class="hud-label">Mídia</div>
-              <div class="meter"><div id="meter-media" class="meter-fill"></div></div>
-              <div id="meter-media-val" class="hud-val">0%</div>
-            </div>
-
-            <div class="hud-row">
-              <div class="hud-label">Economia</div>
-              <div class="meter"><div id="meter-economy" class="meter-fill"></div></div>
-              <div id="meter-economy-val" class="hud-val">0%</div>
-            </div>
-
-            <div class="hud-row">
-              <div class="hud-label">Segurança</div>
-              <div class="meter"><div id="meter-security" class="meter-fill"></div></div>
-              <div id="meter-security-val" class="hud-val">0%</div>
-            </div>
-
-            <div class="hud-row">
-              <div class="hud-label">Serviços</div>
-              <div class="meter"><div id="meter-services" class="meter-fill"></div></div>
-              <div id="meter-services-val" class="hud-val">0%</div>
-            </div>
-
-            <div class="hud-row">
-              <div class="hud-label danger">Risco de escândalo</div>
-              <div class="meter danger"><div id="meter-scandal" class="meter-fill danger"></div></div>
-              <div id="meter-scandal-val" class="hud-val">0%</div>
-            </div>
+      </aside>
+      <section class="content">
+        <div class="grid">
+          <div class="card">
+            <h3>Projetos de Lei</h3>
+            <div id="ui-leis" class="list"></div>
           </div>
-
-          <div class="hud-card">
-            <div class="hud-title">Blocos Sociais</div>
-            <div class="groups-grid">
-              <div class="group-item">
-                <div class="group-top"><span>Baixa renda</span><strong id="g-baixaRenda">0</strong></div>
-                <div class="meter mini"><div id="gbar-baixaRenda" class="meter-fill"></div></div>
-              </div>
-
-              <div class="group-item">
-                <div class="group-top"><span>Classe média</span><strong id="g-classeMedia">0</strong></div>
-                <div class="meter mini"><div id="gbar-classeMedia" class="meter-fill"></div></div>
-              </div>
-
-              <div class="group-item">
-                <div class="group-top"><span>Empresariado</span><strong id="g-empresariado">0</strong></div>
-                <div class="meter mini"><div id="gbar-empresariado" class="meter-fill"></div></div>
-              </div>
-
-              <div class="group-item">
-                <div class="group-top"><span>Funcionalismo</span><strong id="g-funcionalismo">0</strong></div>
-                <div class="meter mini"><div id="gbar-funcionalismo" class="meter-fill"></div></div>
-              </div>
-
-              <div class="group-item">
-                <div class="group-top"><span>Jovens</span><strong id="g-jovens">0</strong></div>
-                <div class="meter mini"><div id="gbar-jovens" class="meter-fill"></div></div>
-              </div>
-
-              <div class="group-item">
-                <div class="group-top"><span>Religiosos</span><strong id="g-religiosos">0</strong></div>
-                <div class="meter mini"><div id="gbar-religiosos" class="meter-fill"></div></div>
-              </div>
-
-              <div class="group-item">
-                <div class="group-top"><span>Agronegócio</span><strong id="g-agro">0</strong></div>
-                <div class="meter mini"><div id="gbar-agro" class="meter-fill"></div></div>
-              </div>
-            </div>
-
-            <div class="hud-note" id="hud-note">
-              Dica: abra a Agenda e inicie projetos com requisitos. Projetos podem travar se o Congresso cair.
-            </div>
+          <div class="card">
+            <h3>Eventos</h3>
+            <div id="ui-evento" class="list"></div>
           </div>
-        </section>
-
-        <div id="actions" class="actions"></div>
-
-        <section id="feed" class="feed"></section>
-      </main>
-    </div>
-  </section>
-
-  <!-- TELA DE ELEIÇÃO -->
-  <section id="election-screen" class="screen">
-    <div class="election-bg"></div>
-
-    <div class="card election-card">
-      <h2 id="election-title">Contagem de votos</h2>
-      <p id="election-subtitle">Apuração dos votos em andamento...</p>
-
-      <div class="vote-bars">
-        <div class="vote-bar">
-          <span class="label">Você</span>
-          <div class="bar-outer"><div id="candidate-bar" class="bar-inner"></div></div>
-          <span id="candidate-percent" class="percent-label">0%</span>
+          <div class="card">
+            <h3>Logs</h3>
+            <div id="ui-logs" class="logs"></div>
+          </div>
         </div>
+      </section>
+    </section>
+  </main>
 
-        <div class="vote-bar">
-          <span class="label">Oponente</span>
-          <div class="bar-outer"><div id="opponent-bar" class="bar-inner opponent"></div></div>
-          <span id="opponent-percent" class="percent-label">0%</span>
-        </div>
-      </div>
+  <footer class="app-footer">
+    <small>Fundação • Parte 1 • Data-Driven • Save Versionado</small>
+  </footer>
 
-      <p id="election-result-text" class="result-text"></p>
+  <!-- Ordem IMPORTANTE: legado (se houver) → loader de dados → save → core → ui → main -->
+  <!-- Se você ainda tiver um script.js legado, pode manter abaixo. Não é obrigatório. -->
+  <!-- <script src="script.js"></script> -->
 
-      <button id="election-continue-btn" class="btn primary" disabled>Continuar</button>
-    </div>
-  </section>
-
-  <!-- MODAL GENÉRICO -->
-  <div id="modal-overlay" class="overlay hidden">
-    <div class="overlay-backdrop"></div>
-    <div class="card modal-card">
-      <h3 id="modal-title"></h3>
-      <p id="modal-text"></p>
-      <div id="modal-options" class="modal-options"></div>
-    </div>
-  </div>
-
-  <!-- MODAL DE CAMPANHA -->
-  <div id="campaign-overlay" class="overlay hidden">
-    <div class="overlay-backdrop"></div>
-    <div class="card modal-card">
-      <h3>Planejar campanha</h3>
-      <p class="small-text">Escolha o tom do discurso e o principal tema da campanha:</p>
-
-      <div class="campaign-section">
-        <h4>Tom do discurso</h4>
-        <div id="tone-options" class="chip-group"></div>
-      </div>
-
-      <div class="campaign-section">
-        <h4>Tema principal</h4>
-        <div id="theme-options" class="chip-group"></div>
-      </div>
-
-      <div class="modal-actions">
-        <button id="start-campaign-btn" class="btn primary">Iniciar campanha</button>
-        <button id="cancel-campaign-btn" class="btn ghost">Cancelar</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- AGENDA DO GOVERNO (ETAPA 2) -->
-  <div id="agenda-overlay" class="overlay hidden">
-    <div class="overlay-backdrop"></div>
-    <div class="card agenda-card">
-      <div class="agenda-head">
-        <div>
-          <h3>Agenda do Governo</h3>
-          <p class="small-text" id="agenda-subtitle">Projetos ativos aplicam efeitos semanais. Se travarem, não avançam.</p>
-        </div>
-        <button id="close-agenda-btn" class="btn small ghost">Fechar</button>
-      </div>
-
-      <div class="agenda-grid">
-        <div class="agenda-col">
-          <div class="agenda-col-title">Ativos</div>
-          <div id="agenda-active" class="agenda-list"></div>
-        </div>
-
-        <div class="agenda-col">
-          <div class="agenda-col-title">Disponíveis</div>
-          <div id="agenda-available" class="agenda-list"></div>
-        </div>
-      </div>
-
-      <div class="agenda-footer">
-        <button id="agenda-refresh-btn" class="btn secondary">Atualizar</button>
-      </div>
-    </div>
-  </div>
-
-  <script src="script.js"></script>
+  <script src="src/platform/dataLoader.js"></script>
+  <script src="src/storage/save.js"></script>
+  <script src="src/core/models.js"></script>
+  <script src="src/core/sim.js"></script>
+  <script src="src/ui/app.js"></script>
+  <script src="src/main.js"></script>
 </body>
 </html>

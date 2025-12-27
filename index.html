@@ -11,31 +11,24 @@
   <link rel="manifest" href="/manifest.webmanifest" />
   <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
 
-  <style>
-    html, body { height: 100%; }
-    body{
-      margin:0;
-      background: linear-gradient(180deg, #070a0f, #0b0f14);
-      color:#e9eef7;
-      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-      overflow-x:hidden;
-    }
-    #app{ min-height: 100%; }
+  <!-- ✅ TEMA AAA -->
+  <link rel="stylesheet" href="/src/ui/theme.css" />
 
-    /* Debug bar */
+  <style>
     #debugBar{
       position: sticky;
       top: 0;
       z-index: 9999;
-      background: rgba(0,0,0,.75);
+      background: rgba(0,0,0,.72);
       border-bottom: 1px solid rgba(255,255,255,.12);
       padding: 10px 12px;
       font-size: 12px;
       line-height: 1.35;
-      backdrop-filter: blur(10px);
-      -webkit-backdrop-filter: blur(10px);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
     }
     #debugBar strong{ font-size: 13px; }
+    #dbgLog{ margin-top: 8px; }
     .dbg-ok{ color:#7CFF9B; }
     .dbg-warn{ color:#FFD36A; }
     .dbg-err{ color:#FF7A7A; }
@@ -84,7 +77,6 @@
         statusEl.textContent = msg;
       }
 
-      // Captura erros na tela
       window.addEventListener("error", (e) => {
         setStatus("err", "ERRO JS");
         logLine("err", "[window.onerror] " + (e.message || "erro") + (e.filename ? (" | " + e.filename + ":" + e.lineno) : ""));
@@ -97,12 +89,10 @@
 
       btnReload.onclick = () => location.reload();
       btnHard.onclick = async () => {
-        // tenta limpar storage básico (ajuda no mobile)
         try {
           localStorage.clear();
           sessionStorage.clear();
         } catch {}
-        // força recarregar sem cache
         location.href = location.href.split("#")[0] + "?t=" + Date.now();
       };
 
@@ -142,7 +132,7 @@
         }
 
         setStatus("ok", "scripts carregados");
-        logLine("ok", "Se ainda estiver branco, então o erro está dentro de sim/app. Veja mensagens acima.");
+        logLine("ok", "Se ainda tiver erro, ele será mostrado acima.");
       }
 
       boot();

@@ -1,41 +1,35 @@
-/* src/ui/theme.css — AAA CINEMATOGRÁFICO (Premium)
-   Objetivo: primeira impressão AAA no mobile e PC.
-   - Hero background forte (suas imagens /assets)
-   - Luz volumétrica + vinheta controlada
-   - Grain cinematográfico
-   - Glass premium com bordas e sombras realistas
-   - Tipografia e hierarquia
-   - Botões com presença
+/* src/ui/theme.css — AAA PREMIUM HUD FINAL
+   - Cinematográfico + HUD premium
+   - CTA real (Avançar Mês)
+   - Tabs estilo console
+   - Cards e chips com acabamento AAA
 */
 
 :root{
-  --bg0:#05070b;
-  --bg1:#0b101a;
-
   --txt:#f2f6ff;
   --muted: rgba(242,246,255,.72);
 
-  --glass: rgba(14, 18, 30, .55);
-  --glass2: rgba(14, 18, 30, .70);
+  --glassA: rgba(14, 18, 30, .58);
+  --glassB: rgba(14, 18, 30, .74);
 
   --stroke: rgba(255,255,255,.12);
-  --stroke2: rgba(255,255,255,.20);
+  --stroke2: rgba(255,255,255,.22);
 
-  --brandA: rgba(90,169,255,.95);
-  --brandB: rgba(255,211,106,.88);
-  --danger: rgba(255,90,90,.95);
+  --brandA: rgba(90,169,255,.96);
+  --brandB: rgba(255,211,106,.90);
+  --danger: rgba(255,90,90,.96);
 
-  --shadowDeep: 0 28px 90px rgba(0,0,0,.60);
-  --shadowCard: 0 14px 44px rgba(0,0,0,.42);
-  --shadowBtn:  0 10px 26px rgba(0,0,0,.35);
+  --shadowDeep: 0 28px 90px rgba(0,0,0,.62);
+  --shadowCard: 0 16px 52px rgba(0,0,0,.44);
+  --shadowBtn:  0 12px 32px rgba(0,0,0,.42);
 
+  --r12: 12px;
   --r14: 14px;
   --r16: 16px;
   --r18: 18px;
   --r22: 22px;
   --r28: 28px;
 
-  /* Fundo dinâmico (setado por bg.js) */
   --bg-img: url("/assets/municipal.png");
 }
 
@@ -48,36 +42,27 @@ body{
   font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Noto Sans", "Helvetica Neue", sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-
-  /* Base */
-  background:
-    radial-gradient(1200px 720px at 18% 10%, rgba(90,169,255,.12), transparent 62%),
-    radial-gradient(980px 620px at 85% 18%, rgba(255,211,106,.09), transparent 58%),
-    linear-gradient(180deg, var(--bg0), var(--bg1));
-
   overflow-x:hidden;
+  background: #070a10;
 }
 
-/* HERO BACKGROUND (cinematográfico) */
+/* HERO BACKGROUND */
 body::before{
   content:"";
   position: fixed;
-  inset: -20px;
+  inset: -22px;
   z-index: -4;
   background-image: var(--bg-img);
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
-
-  /* AAA: imagem forte + leve blur (não esconde a cena) */
-  opacity: .72;
-  filter: blur(1.2px) saturate(1.45) contrast(1.14) brightness(.92);
-
-  transform: scale(1.08);
+  opacity: .78;
+  filter: blur(1.0px) saturate(1.48) contrast(1.16) brightness(.90);
+  transform: scale(1.10);
   transition: opacity .35s ease, filter .35s ease, transform .35s ease;
 }
 
-/* LUZ + VINHETA (controlada) */
+/* LIGHTING + VIGNETTE */
 body::after{
   content:"";
   position: fixed;
@@ -85,17 +70,14 @@ body::after{
   z-index: -3;
   pointer-events:none;
   background:
-    /* “luz” no topo */
-    radial-gradient(1100px 620px at 50% 0%, rgba(255,255,255,.06), rgba(0,0,0,0) 62%),
-    /* bloom lateral suave */
-    radial-gradient(900px 520px at 12% 22%, rgba(90,169,255,.14), rgba(0,0,0,0) 64%),
-    radial-gradient(900px 520px at 88% 20%, rgba(255,211,106,.10), rgba(0,0,0,0) 66%),
-    /* vinheta (cinema) */
-    radial-gradient(1400px 900px at 50% 60%, rgba(0,0,0,.12), rgba(0,0,0,.72) 74%),
-    linear-gradient(180deg, rgba(0,0,0,.10), rgba(0,0,0,.52));
+    radial-gradient(1200px 680px at 50% 0%, rgba(255,255,255,.06), rgba(0,0,0,0) 62%),
+    radial-gradient(900px 540px at 14% 22%, rgba(90,169,255,.16), rgba(0,0,0,0) 64%),
+    radial-gradient(900px 540px at 88% 20%, rgba(255,211,106,.12), rgba(0,0,0,0) 66%),
+    radial-gradient(1400px 980px at 50% 60%, rgba(0,0,0,.10), rgba(0,0,0,.74) 78%),
+    linear-gradient(180deg, rgba(0,0,0,.10), rgba(0,0,0,.56));
 }
 
-/* GRAIN CINEMATOGRÁFICO (super leve) */
+/* FILM GRAIN */
 @keyframes grainMove{
   0%{ transform: translate(0,0); }
   20%{ transform: translate(-2%, 1%); }
@@ -109,12 +91,16 @@ body::after{
   inset: 0;
   z-index: -2;
   pointer-events:none;
-  opacity: .14; /* ajuste fino do “cinema” */
+  opacity: .13;
   background-image:
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)' opacity='.55'/%3E%3C/svg%3E");
   background-size: 240px 240px;
   mix-blend-mode: overlay;
   animation: grainMove 7s steps(2) infinite;
+}
+
+@media (prefers-reduced-motion: reduce){
+  #filmGrain{ animation: none; }
 }
 
 /* APP WRAP */
@@ -123,29 +109,26 @@ body::after{
   padding: 14px 12px 30px;
 }
 
-/* Respiro + limite */
+/* limit + spacing */
 #app > *{
-  max-width: 1040px;
+  max-width: 1060px;
   margin-left: auto;
   margin-right: auto;
 }
 
-/* Tipografia premium */
+/* TITLES */
 h1, h2, h3{ margin:0; letter-spacing: .2px; }
 h1{
   font-size: 28px;
-  line-height: 1.1;
+  line-height: 1.08;
   text-shadow: 0 2px 18px rgba(0,0,0,.35);
-}
-h2{
-  font-size: 18px;
-  color: rgba(242,246,255,.92);
 }
 p, small{ color: var(--muted); }
 
-/* GLASS PREMIUM (aplica em cards/painéis e na maioria das seções) */
+/* GLASS PREMIUM */
 .card, .panel, .box, .container, .modal, .dialog, section{
-  background: linear-gradient(180deg, rgba(14,18,30,.72), rgba(14,18,30,.42));
+  position: relative;
+  background: linear-gradient(180deg, rgba(14,18,30,.76), rgba(14,18,30,.44));
   border: 1px solid var(--stroke);
   border-radius: var(--r28);
   box-shadow: var(--shadowCard);
@@ -153,7 +136,7 @@ p, small{ color: var(--muted); }
   -webkit-backdrop-filter: blur(16px);
 }
 
-/* “borda interna” para dar cara AAA */
+/* inner stroke */
 .card::before, .panel::before, .box::before, .container::before, section::before{
   content:"";
   position:absolute;
@@ -161,16 +144,25 @@ p, small{ color: var(--muted); }
   border-radius: inherit;
   pointer-events:none;
   border: 1px solid rgba(255,255,255,.06);
-  mask: linear-gradient(#000, transparent 65%);
-  -webkit-mask: linear-gradient(#000, transparent 65%);
+  mask: linear-gradient(#000, transparent 70%);
+  -webkit-mask: linear-gradient(#000, transparent 70%);
 }
 
-/* Evita bug: muitos elementos não são position:relative */
-.card, .panel, .box, .container, section{
-  position: relative;
+/* HERO: deixa o primeiro bloco mais “cinema” */
+.aaa .hero-wrap{
+  border-radius: 30px;
+  box-shadow: var(--shadowDeep);
 }
 
-/* Botões AAA premium */
+/* STAT CHIPS (visual premium nos bloquinhos de status) */
+.aaa .stat-chip{
+  background: rgba(255,255,255,.05);
+  border: 1px solid rgba(255,255,255,.10);
+  border-radius: 16px;
+  box-shadow: 0 10px 26px rgba(0,0,0,.32);
+}
+
+/* BUTTONS */
 button{
   appearance:none;
   border: 1px solid rgba(255,255,255,.14);
@@ -178,7 +170,7 @@ button{
   color: var(--txt);
   border-radius: var(--r18);
   padding: 12px 14px;
-  font-weight: 820;
+  font-weight: 840;
   letter-spacing:.25px;
   box-shadow: var(--shadowBtn);
   transition: transform .10s ease, border-color .16s ease, background .16s ease, box-shadow .16s ease, filter .16s ease;
@@ -187,7 +179,7 @@ button{
 button:hover{
   border-color: rgba(255,255,255,.22);
   background: rgba(255,255,255,.09);
-  box-shadow: 0 14px 34px rgba(0,0,0,.42);
+  box-shadow: 0 16px 38px rgba(0,0,0,.46);
 }
 button:active{
   transform: translateY(1px) scale(.985);
@@ -195,26 +187,44 @@ button:active{
 }
 button:disabled{ opacity:.55; cursor:not-allowed; }
 
-/* Botões primários (heurística suave: se tiver classe) */
-button.primary{
-  border-color: rgba(90,169,255,.40);
-  background: linear-gradient(180deg, rgba(90,169,255,.30), rgba(90,169,255,.12));
+/* CTA AAA: Avançar Mês */
+.aaa .btn-primary{
+  border-color: rgba(90,169,255,.44);
+  background:
+    radial-gradient(260px 120px at 20% 20%, rgba(255,255,255,.16), rgba(0,0,0,0) 60%),
+    linear-gradient(180deg, rgba(90,169,255,.38), rgba(90,169,255,.14));
 }
-button.danger{
-  border-color: rgba(255,90,90,.40);
-  background: linear-gradient(180deg, rgba(255,90,90,.22), rgba(255,90,90,.10));
+.aaa .btn-primary:hover{
+  border-color: rgba(90,169,255,.62);
+  background:
+    radial-gradient(260px 120px at 20% 20%, rgba(255,255,255,.18), rgba(0,0,0,0) 60%),
+    linear-gradient(180deg, rgba(90,169,255,.44), rgba(90,169,255,.16));
 }
 
-/* Pills/tabs (muitos jogos AAA usam pill tabs) */
-.tabbar, .tabs, nav{
-  display:flex;
-  gap: 10px;
-  flex-wrap: wrap;
+/* Novo jogo (risco/decisão) */
+.aaa .btn-danger{
+  border-color: rgba(255,90,90,.46);
+  background:
+    radial-gradient(260px 120px at 20% 20%, rgba(255,255,255,.14), rgba(0,0,0,0) 60%),
+    linear-gradient(180deg, rgba(255,90,90,.26), rgba(255,90,90,.10));
 }
-.tabbar button, .tabs button, nav button{
-  padding: 10px 13px;
+
+/* Botões neutros */
+.aaa .btn-ghost{
+  background: rgba(0,0,0,.14);
+}
+
+/* Tabs estilo console HUD */
+.aaa .tab-btn{
+  padding: 10px 14px;
   border-radius: 999px;
-  background: rgba(255,255,255,.05);
+  border: 1px solid rgba(255,255,255,.12);
+  background: rgba(0,0,0,.20);
+  box-shadow: 0 10px 24px rgba(0,0,0,.28);
+}
+.aaa .tab-btn:hover{
+  border-color: rgba(255,255,255,.20);
+  background: rgba(255,255,255,.07);
 }
 
 /* Inputs */
@@ -234,7 +244,7 @@ input:focus, select:focus, textarea:focus{
   background: rgba(0,0,0,.22);
 }
 
-/* Progress bars premium */
+/* Progress */
 progress{
   width:100%;
   height: 11px;
@@ -250,27 +260,17 @@ progress::-webkit-progress-value{
   border-radius: 999px;
 }
 
-/* Animação de entrada */
-@keyframes fadeUp{
-  from{ opacity:0; transform: translateY(8px); }
-  to{ opacity:1; transform: translateY(0); }
-}
-#app{ animation: fadeUp .22s ease both; }
-
-/* Debug bar: menor e discreto */
+/* DEBUG: modo dev discreto (não estraga a primeira impressão) */
 #debugBar{
+  opacity: .82;
+  transform: translateY(-2px);
   border-radius: 0 0 18px 18px;
 }
+#debugBar:hover{ opacity: .98; }
 
 /* Mobile tuning */
 @media (max-width: 480px){
   #app{ padding: 14px 12px 30px; }
   h1{ font-size: 26px; }
   button{ padding: 11px 12px; }
-}
-
-/* Acessibilidade: reduz animações */
-@media (prefers-reduced-motion: reduce){
-  #app{ animation: none; }
-  #filmGrain{ animation: none; }
 }

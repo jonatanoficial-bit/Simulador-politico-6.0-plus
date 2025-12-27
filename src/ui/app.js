@@ -1,6 +1,8 @@
-/* src/ui/app.js — ARQUIVO COMPLETO (Bloco H)
-   - Mantém tudo do Bloco F/G funcionando
-   - Adiciona UI: Mídia/Manchetes + Integridade/Risco/Investigação
+/* src/ui/app.js — ARQUIVO COMPLETO (Bloco H + Bloco L)
+   - UI completa do jogo
+   - Aba Mídia + Integridade
+   - PWA: registra Service Worker
+   - Botão "Instalar App" quando disponível
 */
 
 (function initApp(){
@@ -17,7 +19,7 @@
       if (k === "class") n.className = v;
       else if (k === "html") n.innerHTML = v;
       else if (k.startsWith("on") && typeof v === "function") n.addEventListener(k.slice(2), v);
-      else n.setAttribute(k, v);
+      else if (v != null) n.setAttribute(k, v);
     }
     for (const c of (children||[])){
       if (c == null) continue;
@@ -46,22 +48,60 @@
 
   function clamp(v, a, b){ return Math.max(a, Math.min(b, v)); }
 
+  // ---- PWA (Bloco L): Install prompt ----
+  let deferredInstallPrompt = null;
+
+  window.addEventListener("beforeinstallprompt", (e) => {
+    // Evita o mini-infobar
+    e.preventDefault();
+    deferredInstallPrompt = e;
+    // mostra botão quando renderizar
+    render();
+  });
+
+  window.addEventListener("appinstalled", () => {
+    deferredInstallPrompt = null;
+    renderToast("App instalado!");
+    render();
+  });
+
+  async function handleInstall(){
+    if (!deferredInstallPrompt){
+      renderToast("Instalação não disponível agora.");
+      return;
+    }
+    deferredInstallPrompt.prompt();
+    const { outcome } = await deferredInstallPrompt.userChoice;
+    deferredInstallPrompt = null;
+    renderToast(outcome === "accepted" ? "Instalação iniciada." : "Instalação cancelada.");
+    render();
+  }
+
+  // ---- Service Worker (Bloco L) ----
+  async function registerSW(){
+    if (!("serviceWorker" in navigator)) return;
+    try {
+      const reg = await navigator.serviceWorker.register("/sw.js");
+      // Atualiza automaticamente quando houver versão nova
+      if (reg.waiting) {
+        reg.waiting.postMessage({ type: "SKIP_WAITING" });
+      }
+    } catch (e) {
+      // silencioso para não quebrar
+    }
+  }
+
   // ---- State ----
   let state = null;
   let activeTab = "painel";
 
-  // ---- Persistência simples ----
+  // ---- Persistência ----
   function loadOrNew(){
     try {
       const loaded = save.load();
       if (loaded) return loaded;
     } catch(e){}
     return sim.newGameFromData(data);
-  }
-
-  function hardReload(){
-    state = loadOrNew();
-    render();
   }
 
   function commit(){
@@ -75,7 +115,6 @@
   }
 
   // ---- UI pieces ----
-
   function badge(text){
     return el("span", { class: "badge" }, [text]);
   }
@@ -93,13 +132,6 @@
         el("div", { class:"barLabelR" }, [fmt.pct(v)])
       ]),
       barOuter
-    ]);
-  }
-
-  function sectionTitle(t, right=null){
-    return el("div", { class:"sectionTitle" }, [
-      el("div", { class:"sectionTitleL" }, [t]),
-      el("div", { class:"sectionTitleR" }, [right ? right : ""])
     ]);
   }
 
@@ -164,12 +196,11 @@
       { id:"executivo", label:"Executivo" },
       { id:"eventos", label:"Eventos" },
       { id:"eleicoes", label:"Eleições" },
-      { id:"midia", label:"Mídia" },        // Bloco H
-      { id:"integridade", label:"Integridade" }, // Bloco H
+      { id:"midia", label:"Mídia" },
+      { id:"integridade", label:"Integridade" },
       { id:"logs", label:"Diário" }
     ];
 
-    // esconder abas que não fazem sentido
     const filtered = tabs.filter(t => {
       if (t.id === "executivo" && !sim.isExecutivo(state.cargoId)) return false;
       if (t.id === "legislativo" && !sim.isLegislador(state.cargoId)) return false;
@@ -189,13 +220,19 @@
     const tut = sim.tutorialText(state);
     const tutNode = tut ? el("div", { class:"tutorial" }, [badge("Tutorial"), " ", tut]) : null;
 
+    // Bloco L: botão instalar aparece quando o navegador permite
+    const installBtn = deferredInstallPrompt
+      ? el("button", { class:"btn primary", onclick: handleInstall }, ["Instalar App"])
+      : null;
+
     return el("div", { class:"controls" }, [
       el("div", { class:"controlsLeft" }, [
         el("button", { class:"btn primary", onclick: () => { state = sim.nextTurn(state, data); commit(); } }, ["Avançar Mês"]),
         el("button", { class:"btn", onclick: () => { save.save(state); renderToast("Jogo salvo."); } }, ["Salvar"]),
         el("button", { class:"btn", onclick: () => { state = save.load() || state; renderToast("Carregado."); render(); } }, ["Carregar"]),
         el("button", { class:"btn danger", onclick: () => { state = sim.newGameFromData(data); commit(); renderToast("Novo jogo iniciado."); } }, ["Novo Jogo"]),
-      ]),
+        installBtn
+      ].filter(Boolean)),
       el("div", { class:"controlsRight" }, [
         tutNode ? tutNode : el("div", { class:"tutorial off" }, [""])
       ])
@@ -214,14 +251,12 @@
   }
 
   // ---- Screens ----
-
   function screenPainel(){
     const cargoObj = (data.cargos||[]).find(c => c.id === state.cargoId);
     const cargoNome = cargoObj ? cargoObj.nome : state.cargoId;
 
     const cards = [];
 
-    // resumo opinião por grupos
     const o = state.opiniao || {};
     cards.push(card("Opinião por grupos", [
       progressBar("Geral", o.geral ?? 50),
@@ -235,7 +270,6 @@
       progressBar("Conservadores", o.conservadores ?? 50),
     ]));
 
-    // integridade
     cards.push(card("Integridade (resumo)", [
       progressBar("Integridade", state.integridade?.nivel ?? 50, "Quanto maior, melhor"),
       progressBar("Risco", state.integridade?.risco ?? 20, "Quanto maior, maior chance de investigação"),
@@ -245,7 +279,6 @@
       el("button", { class:"btn", onclick: () => setTab("integridade") }, ["Ver detalhes"])
     ]));
 
-    // manchetes
     const m = state.midia?.manchetes || [];
     const top = m.slice(0, 5);
     cards.push(card("Mídia (últimas manchetes)", [
@@ -255,7 +288,6 @@
       el("button", { class:"btn" , onclick: () => setTab("midia") }, ["Abrir Mídia"])
     ]));
 
-    // status do cargo/mandato
     cards.push(card("Situação atual", [
       el("div", { class:"row" }, [
         badge("Cargo"),
@@ -340,7 +372,6 @@
       ])
     ]);
 
-    // listeners de rótulo (em re-render, eles reanexam)
     setTimeout(() => {
       const ide = $("#p_ideologia");
       const ideLbl = $("#p_ideologia_label");
@@ -376,7 +407,6 @@
         el("div", { class:"grid2" }, acoes.map(a => {
           const impacts = a.impactos || {};
           const impTxt = [];
-
           if (typeof impacts.popularidade === "number") impTxt.push(`Popularidade ${impSign(impacts.popularidade)}`);
           if (typeof impacts.governabilidade === "number") impTxt.push(`Governabilidade ${impSign(impacts.governabilidade)}`);
           if (typeof impacts.reputacao === "number") impTxt.push(`Reputação ${impSign(impacts.reputacao)}`);
@@ -387,10 +417,7 @@
             el("div", { class:"muted" }, [impTxt.length ? `Impactos: ${impTxt.join(" • ")}` : "Impactos: variados"]),
             el("button", {
               class:"btn primary",
-              onclick: () => {
-                state = sim.aplicarAcaoDoMes(state, data, a.id);
-                commit();
-              }
+              onclick: () => { state = sim.aplicarAcaoDoMes(state, data, a.id); commit(); }
             }, ["Executar"])
           ]);
         }))
@@ -414,6 +441,7 @@
     }
 
     const leis = state.leisPendentes || [];
+
     const btnNeg = el("div", { class:"card" }, [
       el("div", { class:"cardTitle" }, ["Articulação / Apoios"]),
       el("div", { class:"cardBody" }, [
@@ -552,10 +580,7 @@
         el("div", { class:"stack" }, (ev.opcoes || []).map(o =>
           el("button", {
             class:"btn primary",
-            onclick: () => {
-              state = sim.resolveEvent(state, data, o.id);
-              commit();
-            }
+            onclick: () => { state = sim.resolveEvent(state, data, o.id); commit(); }
           }, [o.texto || o.id])
         ))
       ]) : el("div", { class:"muted" }, ["Nenhum evento agora. Avance o mês."])
@@ -616,7 +641,6 @@
     return el("div", { class:"muted" }, ["Etapa desconhecida."]);
   }
 
-  // Bloco H: Mídia
   function screenMidia(){
     const m = state.midia?.manchetes || [];
     const box = card("Mídia — Manchetes", [
@@ -630,7 +654,6 @@
     return el("div", { class:"grid" }, [box]);
   }
 
-  // Bloco H: Integridade
   function screenIntegridade(){
     const i = state.integridade || { nivel:50, risco:20, sobInvestigacao:false, nivelInvestigacao:0 };
 
@@ -639,9 +662,7 @@
       progressBar("Integridade", i.nivel, "Quanto maior, melhor"),
       progressBar("Risco", i.risco, "Quanto maior, maior chance de investigação"),
       i.sobInvestigacao
-        ? el("div", { class:"warn" }, [
-            `Sob investigação • Nível: ${fmt.pct(i.nivelInvestigacao)}`
-          ])
+        ? el("div", { class:"warn" }, [`Sob investigação • Nível: ${fmt.pct(i.nivelInvestigacao)}`])
         : el("div", { class:"ok" }, ["Sem investigação ativa"]),
       el("div", { class:"row" }, [
         badge("Dica"),
@@ -680,11 +701,10 @@
   }
 
   function ensureBaseStyles(){
-    // injeta CSS mínimo se não existir (não altera seus arquivos de estilo, só garante layout)
     if ($("#sim_pol_styles")) return;
 
     const css = `
-      :root{ --bg:#0b0f14; --card:rgba(255,255,255,.06); --stroke:rgba(255,255,255,.12); --txt:#e6eef8; --muted:rgba(255,255,255,.68); --ok:#7CFC98; --warn:#FFD36A; --bad:#FF6B6B; }
+      :root{ --card:rgba(255,255,255,.06); --stroke:rgba(255,255,255,.12); --txt:#e6eef8; --muted:rgba(255,255,255,.68); --ok:#7CFC98; --warn:#FFD36A; --bad:#FF6B6B; }
       body{ margin:0; font-family: system-ui,-apple-system,Segoe UI,Roboto,Arial; color:var(--txt); background: transparent; }
       .wrap{ max-width:1100px; margin:0 auto; padding:14px; }
       .topHeader{ display:flex; gap:12px; align-items:flex-start; justify-content:space-between; padding:12px; border:1px solid var(--stroke); background:rgba(0,0,0,.35); border-radius:14px; }
@@ -758,5 +778,6 @@
   // ---- Boot ----
   state = loadOrNew();
   render();
+  registerSW();
 
 })();

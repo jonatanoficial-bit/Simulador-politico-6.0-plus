@@ -1,0 +1,35 @@
+[
+  {
+    "id": "chuva_forte",
+    "nome": "Chuvas Fortes e Alagamentos",
+    "tipo": "crise",
+    "descricao": "Alagamentos atingem bairros vulneráveis. A imprensa cobra resposta imediata.",
+    "opcoes": [
+      { "id": "ajuda_imediata", "texto": "Liberar ajuda emergencial e abrigos", "impactos": { "popularidade": 3, "recursos": -300 } },
+      { "id": "plano_preventivo", "texto": "Anunciar plano de drenagem e iniciar licitação", "impactos": { "popularidade": 1, "recursos": -200 } },
+      { "id": "minimizar", "texto": "Minimizar publicamente e aguardar", "impactos": { "popularidade": -4, "recursos": 0 } }
+    ]
+  },
+  {
+    "id": "denuncia_corrupcao",
+    "nome": "Denúncia na Imprensa",
+    "tipo": "escandalo",
+    "descricao": "Surge denúncia de favorecimento em contratos. Você precisa reagir.",
+    "opcoes": [
+      { "id": "investigar", "texto": "Abrir investigação interna e afastar suspeitos", "impactos": { "popularidade": 2, "recursos": -100 } },
+      { "id": "negar", "texto": "Negar e atacar a imprensa", "impactos": { "popularidade": -3, "recursos": 0 } },
+      { "id": "silencio", "texto": "Não comentar", "impactos": { "popularidade": -2, "recursos": 0 } }
+    ]
+  },
+  {
+    "id": "manifestacao",
+    "nome": "Manifestação Popular",
+    "tipo": "pressao_social",
+    "descricao": "Um protesto cresce nas redes e vai às ruas. Há risco de escalada.",
+    "opcoes": [
+      { "id": "dialogo", "texto": "Chamar lideranças para diálogo público", "impactos": { "popularidade": 1, "recursos": -50 } },
+      { "id": "repressao", "texto": "Reforçar policiamento e restringir", "impactos": { "popularidade": -3, "recursos": -50 } },
+      { "id": "ignorar", "texto": "Ignorar (seguir agenda)", "impactos": { "popularidade": -2, "recursos": 0 } }
+    ]
+  }
+]

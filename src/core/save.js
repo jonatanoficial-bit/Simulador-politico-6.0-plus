@@ -2,6 +2,7 @@
    Persistência local (single player offline)
    - Salva em localStorage
    - Versão do save para compatibilidade futura
+   - getDefaultState(data): requerido pelo seu sim.js
 */
 
 (function(){
@@ -17,6 +18,104 @@
 
   function nowISO(){
     try { return new Date().toISOString(); } catch(e){ return String(Date.now()); }
+  }
+
+  // ✅ FUNÇÃO REQUERIDA PELO sim.js
+  // Gera um estado padrão seguro mesmo se não existir save.
+  function getDefaultState(data){
+    const d = data || (window.SIM_POL && window.SIM_POL.data) || {};
+
+    const cargos = Array.isArray(d.cargos) ? d.cargos : [];
+    const cargoInicial = cargos.find(c => c.id === "vereador") || cargos[0] || { id:"vereador", nome:"Vereador", tipo:"legislativo", mandatoMeses:48 };
+
+    const partidos = Array.isArray(d.partidos) ? d.partidos : [];
+    const partidoInicial = partidos.find(p => p.id === "centro") ? "centro" : (partidos[0]?.id || "centro");
+
+    return {
+      // tempo
+      turno: 1,
+      ano: 2025,
+      mes: 1,
+
+      // carreira
+      cargoId: cargoInicial.id,
+      casaAtualId: cargoInicial.tipo === "legislativo" ? "camara" : "executivo",
+      mandatoMesesRestantes: Number(cargoInicial.mandatoMeses || 48),
+
+      // recursos / status
+      recursos: 200,
+      popularidade: 50,
+      governabilidade: 50,
+      reputacao_no_plenario: 50,
+
+      // opiniões por grupo
+      opiniao: {
+        geral: 50,
+        pobres: 50,
+        classe_media: 50,
+        ricos: 50,
+        empresarios: 50,
+        servidores: 50,
+        religiosos: 50,
+        progressistas: 50,
+        conservadores: 50
+      },
+
+      // integridade / risco
+      integridade: {
+        nivel: 50,
+        risco: 20,
+        sobInvestigacao: false,
+        nivelInvestigacao: 0
+      },
+
+      // personagem
+      personagem: {
+        nome: "Novo Político",
+        partidoId: partidoInicial,
+        ideologia: 0,
+        tracos: {
+          honestidade: 50,
+          carisma: 50,
+          competencia: 50
+        }
+      },
+
+      // ações por mês
+      acoesDoMes: {
+        limite: 2,
+        usadas: 0
+      },
+
+      // legislativo/executivo
+      leisPendentes: [],
+      leisParaSancao: [],
+      orcamento: {
+        receitaMensal: 120,
+        categorias: {
+          saude: 25,
+          educacao: 25,
+          seguranca: 20,
+          infraestrutura: 20,
+          administracao: 10
+        }
+      },
+      gabinete: {
+        economia: "",
+        saude: "",
+        educacao: "",
+        seguranca: ""
+      },
+
+      // eventos / eleições
+      eventoAtual: null,
+      emEleicao: false,
+      eleicao: null,
+
+      // mídia / logs
+      midia: { manchetes: [] },
+      logs: []
+    };
   }
 
   function save(state){
@@ -51,7 +150,7 @@
       if (v === 1){
         // ok
       } else {
-        // se vier versão desconhecida, tenta usar mesmo assim
+        // versão desconhecida: tenta usar mesmo assim
       }
 
       return st;
@@ -89,6 +188,7 @@
     hasSave,
     clear,
     getMeta,
+    getDefaultState, // ✅ agora existe
     KEY,
     SAVE_VERSION
   };

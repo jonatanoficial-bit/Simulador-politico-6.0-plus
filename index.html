@@ -7,9 +7,7 @@
   <meta name="color-scheme" content="dark" />
 
   <title>Simulador Político</title>
-  <meta name="description" content="Simulador político: comece como vereador e avance até presidente. Decisões com impacto realista, mídia, crises e gestão." />
 
-  <!-- PWA -->
   <link rel="manifest" href="/manifest.webmanifest" />
   <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
 
@@ -17,25 +15,138 @@
     html, body { height: 100%; }
     body{
       margin:0;
-      background: radial-gradient(1200px 700px at 20% 10%, rgba(90,169,255,.18), transparent 60%),
-                  radial-gradient(900px 600px at 85% 20%, rgba(255,211,106,.10), transparent 55%),
-                  linear-gradient(180deg, #070a0f, #0b0f14);
+      background: linear-gradient(180deg, #070a0f, #0b0f14);
+      color:#e9eef7;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
       overflow-x:hidden;
-      -webkit-font-smoothing: antialiased;
-      -moz-osx-font-smoothing: grayscale;
     }
     #app{ min-height: 100%; }
+
+    /* Debug bar */
+    #debugBar{
+      position: sticky;
+      top: 0;
+      z-index: 9999;
+      background: rgba(0,0,0,.75);
+      border-bottom: 1px solid rgba(255,255,255,.12);
+      padding: 10px 12px;
+      font-size: 12px;
+      line-height: 1.35;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+    }
+    #debugBar strong{ font-size: 13px; }
+    .dbg-ok{ color:#7CFF9B; }
+    .dbg-warn{ color:#FFD36A; }
+    .dbg-err{ color:#FF7A7A; }
+    .dbg-row{ margin-top:6px; opacity:.95; white-space: pre-wrap; word-break: break-word; }
+    .dbg-btns{ margin-top:8px; display:flex; gap:8px; flex-wrap:wrap; }
+    .dbg-btn{
+      border:1px solid rgba(255,255,255,.18);
+      background: rgba(255,255,255,.06);
+      color:#e9eef7;
+      padding:6px 10px;
+      border-radius:10px;
+      font-size:12px;
+    }
   </style>
 </head>
 
 <body>
+  <div id="debugBar">
+    <strong>DEBUG:</strong> <span id="dbgStatus" class="dbg-warn">iniciando...</span>
+    <div id="dbgLog" class="dbg-row"></div>
+    <div class="dbg-btns">
+      <button class="dbg-btn" id="btnReload">Recarregar</button>
+      <button class="dbg-btn" id="btnHard">Hard reload (limpar)</button>
+    </div>
+  </div>
+
   <div id="app"></div>
 
-  <!-- Ordem importa -->
-  <script src="/src/data/data.js"></script>
-  <script src="/src/core/models.js"></script>
-  <script src="/src/core/save.js"></script>
-  <script src="/src/core/sim.js"></script>
-  <script src="/src/ui/app.js"></script>
+  <script>
+    (function(){
+      const statusEl = document.getElementById("dbgStatus");
+      const logEl = document.getElementById("dbgLog");
+      const btnReload = document.getElementById("btnReload");
+      const btnHard = document.getElementById("btnHard");
+
+      function logLine(type, msg){
+        const cls = type === "ok" ? "dbg-ok" : type === "err" ? "dbg-err" : "dbg-warn";
+        const line = document.createElement("div");
+        line.className = "dbg-row " + cls;
+        line.textContent = msg;
+        logEl.appendChild(line);
+      }
+
+      function setStatus(type, msg){
+        statusEl.className = type === "ok" ? "dbg-ok" : type === "err" ? "dbg-err" : "dbg-warn";
+        statusEl.textContent = msg;
+      }
+
+      // Captura erros na tela
+      window.addEventListener("error", (e) => {
+        setStatus("err", "ERRO JS");
+        logLine("err", "[window.onerror] " + (e.message || "erro") + (e.filename ? (" | " + e.filename + ":" + e.lineno) : ""));
+      });
+
+      window.addEventListener("unhandledrejection", (e) => {
+        setStatus("err", "PROMISE REJEITADA");
+        logLine("err", "[unhandledrejection] " + (e.reason?.message || String(e.reason)));
+      });
+
+      btnReload.onclick = () => location.reload();
+      btnHard.onclick = async () => {
+        // tenta limpar storage básico (ajuda no mobile)
+        try {
+          localStorage.clear();
+          sessionStorage.clear();
+        } catch {}
+        // força recarregar sem cache
+        location.href = location.href.split("#")[0] + "?t=" + Date.now();
+      };
+
+      async function loadScript(src){
+        return new Promise((resolve, reject) => {
+          const s = document.createElement("script");
+          s.src = src;
+          s.async = false;
+          s.onload = () => resolve(true);
+          s.onerror = () => reject(new Error("Falha ao carregar: " + src));
+          document.body.appendChild(s);
+        });
+      }
+
+      async function boot(){
+        setStatus("warn", "carregando scripts...");
+        logLine("warn", "Iniciando boot...");
+
+        const scripts = [
+          "/src/data/data.js",
+          "/src/core/models.js",
+          "/src/core/save.js",
+          "/src/core/sim.js",
+          "/src/ui/app.js"
+        ];
+
+        for (const src of scripts){
+          try{
+            await loadScript(src);
+            logLine("ok", "OK: " + src);
+          }catch(err){
+            setStatus("err", "SCRIPT FALHOU");
+            logLine("err", err.message);
+            logLine("warn", "→ Se isso falhar, a tela fica preta. Corrija o caminho ou o arquivo.");
+            return;
+          }
+        }
+
+        setStatus("ok", "scripts carregados");
+        logLine("ok", "Se ainda estiver branco, então o erro está dentro de sim/app. Veja mensagens acima.");
+      }
+
+      boot();
+    })();
+  </script>
 </body>
 </html>

@@ -1,0 +1,26 @@
+[
+  {
+    "id": "centro",
+    "nome": "Partido do Centro",
+    "ideologiaBase": 0,
+    "bonus": { "governabilidade": 2, "reputacao": 1 }
+  },
+  {
+    "id": "progressista",
+    "nome": "Partido Progressista",
+    "ideologiaBase": -35,
+    "bonus": { "opinioes": { "progressistas": 3, "conservadores": -1 } }
+  },
+  {
+    "id": "conservador",
+    "nome": "Partido Conservador",
+    "ideologiaBase": 35,
+    "bonus": { "opinioes": { "conservadores": 3, "progressistas": -1 } }
+  },
+  {
+    "id": "liberal",
+    "nome": "Partido Liberal",
+    "ideologiaBase": 15,
+    "bonus": { "opinioes": { "empresarios": 2, "servidores": -1 } }
+  }
+]

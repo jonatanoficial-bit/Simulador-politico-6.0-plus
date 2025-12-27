@@ -8,6 +8,8 @@
   <meta name="theme-color" content="#0b1220" />
 </head>
 <body>
+  <div class="bg-overlay"></div>
+
   <header class="app-header">
     <div class="brand">Simulador Político</div>
     <nav class="header-actions">
@@ -37,11 +39,21 @@
           <div class="stat"><span>Popularidade:</span> <strong id="ui-popularidade">50%</strong></div>
           <div class="stat"><span>Recursos:</span> <strong id="ui-recursos">0</strong></div>
           <div class="stat"><span>Cargo:</span> <strong id="ui-cargo">-</strong></div>
+          <div class="stat"><span>Casa:</span> <strong id="ui-casa">-</strong></div>
+          <div class="stat"><span>Governab.:</span> <strong id="ui-governab">-</strong></div>
         </div>
 
         <div class="panel">
           <h3>Ações</h3>
           <button id="btn-next" class="btn primary full">Avançar Mês</button>
+        </div>
+
+        <div class="panel">
+          <h3>Dica</h3>
+          <small>
+            Legislador: aprove leis com votos reais e negocie apoio.<br/>
+            Executivo: ajuste orçamento, nomeie equipe e implemente políticas.
+          </small>
         </div>
       </aside>
 
@@ -53,8 +65,18 @@
           </div>
 
           <div class="card">
+            <h3>Painel do Cargo</h3>
+            <div id="ui-painel-cargo" class="list"></div>
+          </div>
+
+          <div class="card">
             <h3>Projetos de Lei</h3>
             <div id="ui-leis" class="list"></div>
+          </div>
+
+          <div class="card">
+            <h3>Políticas</h3>
+            <div id="ui-politicas" class="list"></div>
           </div>
 
           <div class="card">
@@ -72,7 +94,7 @@
   </main>
 
   <footer class="app-footer">
-    <small>Parte 2 • Eleições + Progressão</small>
+    <small>Bloco E • Visual Premium + Fundos dinâmicos (assets)</small>
   </footer>
 
   <script src="src/platform/dataLoader.js"></script>

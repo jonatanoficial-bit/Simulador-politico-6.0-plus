@@ -1,0 +1,20 @@
+[
+  {
+    "id": "transparencia_publica",
+    "titulo": "Lei de Transparência Municipal",
+    "descricao": "Aumenta a transparência e reduz a percepção de corrupção, mas eleva custos administrativos.",
+    "impactos": { "popularidade": 2, "recursos": -150 }
+  },
+  {
+    "id": "incentivo_empreendedorismo",
+    "titulo": "Programa de Incentivo ao Empreendedorismo",
+    "descricao": "Incentiva pequenos negócios com microcrédito e simplificação; pode aumentar arrecadação no médio prazo.",
+    "impactos": { "popularidade": 1, "recursos": -200 }
+  },
+  {
+    "id": "restricao_gastos",
+    "titulo": "Teto de Gastos Local",
+    "descricao": "Restringe gastos; melhora credibilidade fiscal, mas reduz investimentos e pode gerar insatisfação.",
+    "impactos": { "popularidade": -2, "recursos": 250 }
+  }
+]

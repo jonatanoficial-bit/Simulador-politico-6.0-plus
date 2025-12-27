@@ -1,0 +1,8 @@
+[
+  { "de": "vereador", "para": ["deputado_federal", "prefeito"] },
+  { "de": "deputado_federal", "para": ["senador", "governador"] },
+  { "de": "senador", "para": ["governador", "presidente"] },
+  { "de": "prefeito", "para": ["governador"] },
+  { "de": "governador", "para": ["presidente"] },
+  { "de": "presidente", "para": [] }
+]

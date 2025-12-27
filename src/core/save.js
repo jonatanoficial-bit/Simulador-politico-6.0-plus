@@ -2,7 +2,8 @@
    Persistência local (single player offline)
    - Salva em localStorage
    - Versão do save para compatibilidade futura
-   - getDefaultState(data): requerido pelo seu sim.js
+   - getDefaultState(data): requerido pelo sim.js
+   - Estado padrão expandido: evita erros tipo "forca undefined"
 */
 
 (function(){
@@ -20,8 +21,7 @@
     try { return new Date().toISOString(); } catch(e){ return String(Date.now()); }
   }
 
-  // ✅ FUNÇÃO REQUERIDA PELO sim.js
-  // Gera um estado padrão seguro mesmo se não existir save.
+  // ✅ Gera um estado padrão robusto (compatível com sim.js e app.js)
   function getDefaultState(data){
     const d = data || (window.SIM_POL && window.SIM_POL.data) || {};
 
@@ -31,6 +31,10 @@
     const partidos = Array.isArray(d.partidos) ? d.partidos : [];
     const partidoInicial = partidos.find(p => p.id === "centro") ? "centro" : (partidos[0]?.id || "centro");
 
+    // Importante: alguns cores usam "casaId" ou "casaAtualId" como string específica.
+    // Pelo seu print apareceu "camara_municipal" — então já setamos assim para evitar incompat.
+    const casaInicial = "camara_municipal";
+
     return {
       // tempo
       turno: 1,
@@ -39,7 +43,8 @@
 
       // carreira
       cargoId: cargoInicial.id,
-      casaAtualId: cargoInicial.tipo === "legislativo" ? "camara" : "executivo",
+      casaId: casaInicial,
+      casaAtualId: casaInicial,
       mandatoMesesRestantes: Number(cargoInicial.mandatoMeses || 48),
 
       // recursos / status
@@ -74,10 +79,30 @@
         nome: "Novo Político",
         partidoId: partidoInicial,
         ideologia: 0,
+
+        // ✅ Alguns sistemas usam "atributos" (força/carisma/inteligência etc.)
+        // Criamos aqui para o sim.js não tentar setar "forca" em undefined.
+        atributos: {
+          forca: 50,
+          carisma: 50,
+          inteligencia: 50,
+          oratoria: 50,
+          estrategia: 50
+        },
+
+        // ✅ Outros sistemas usam "tracos"
         tracos: {
           honestidade: 50,
           carisma: 50,
-          competencia: 50
+          competencia: 50,
+          disciplina: 50,
+          ambicao: 50
+        },
+
+        // ✅ Compatibilidade extra caso o sim use "status"
+        status: {
+          energia: 100,
+          estresse: 10
         }
       },
 
@@ -90,6 +115,9 @@
       // legislativo/executivo
       leisPendentes: [],
       leisParaSancao: [],
+      projetosEmTramitacao: [],
+      projetosAprovados: [],
+
       orcamento: {
         receitaMensal: 120,
         categorias: {
@@ -100,6 +128,7 @@
           administracao: 10
         }
       },
+
       gabinete: {
         economia: "",
         saude: "",
@@ -114,6 +143,7 @@
 
       // mídia / logs
       midia: { manchetes: [] },
+      diario: [],
       logs: []
     };
   }
@@ -143,14 +173,11 @@
       const parsed = safeJsonParse(raw, null);
       if (!parsed || !parsed.state) return null;
 
-      // Migração simples por versão (futuro)
       const v = Number(parsed.__saveVersion || 0);
       let st = parsed.state;
 
-      if (v === 1){
+      if (v === 1) {
         // ok
-      } else {
-        // versão desconhecida: tenta usar mesmo assim
       }
 
       return st;
@@ -188,7 +215,7 @@
     hasSave,
     clear,
     getMeta,
-    getDefaultState, // ✅ agora existe
+    getDefaultState,
     KEY,
     SAVE_VERSION
   };

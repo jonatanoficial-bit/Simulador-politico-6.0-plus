@@ -1,29 +1,42 @@
-/* src/ui/theme.css — TEMA AAA V2 (global)
-   - Visual AAA: glass, tipografia, sombras, micro animações
-   - Fundo dinâmico via data-bg (setado por bg.js)
+/* src/ui/theme.css — AAA CINEMATOGRÁFICO (Premium)
+   Objetivo: primeira impressão AAA no mobile e PC.
+   - Hero background forte (suas imagens /assets)
+   - Luz volumétrica + vinheta controlada
+   - Grain cinematográfico
+   - Glass premium com bordas e sombras realistas
+   - Tipografia e hierarquia
+   - Botões com presença
 */
 
 :root{
   --bg0:#05070b;
   --bg1:#0b101a;
 
-  --glass: rgba(18, 24, 40, .52);
-  --glass2: rgba(18, 24, 40, .70);
-  --stroke: rgba(255,255,255,.10);
-  --stroke2: rgba(255,255,255,.18);
+  --txt:#f2f6ff;
+  --muted: rgba(242,246,255,.72);
 
-  --txt:#eef3ff;
-  --muted: rgba(238,243,255,.72);
+  --glass: rgba(14, 18, 30, .55);
+  --glass2: rgba(14, 18, 30, .70);
+
+  --stroke: rgba(255,255,255,.12);
+  --stroke2: rgba(255,255,255,.20);
 
   --brandA: rgba(90,169,255,.95);
-  --brandB: rgba(255,211,106,.82);
+  --brandB: rgba(255,211,106,.88);
+  --danger: rgba(255,90,90,.95);
 
-  --shadow: 0 16px 55px rgba(0,0,0,.45);
-  --shadow2: 0 10px 35px rgba(0,0,0,.35);
+  --shadowDeep: 0 28px 90px rgba(0,0,0,.60);
+  --shadowCard: 0 14px 44px rgba(0,0,0,.42);
+  --shadowBtn:  0 10px 26px rgba(0,0,0,.35);
 
+  --r14: 14px;
   --r16: 16px;
   --r18: 18px;
   --r22: 22px;
+  --r28: 28px;
+
+  /* Fundo dinâmico (setado por bg.js) */
+  --bg-img: url("/assets/municipal.png");
 }
 
 *{ box-sizing:border-box; }
@@ -33,124 +46,195 @@ body{
   margin:0;
   color: var(--txt);
   font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Noto Sans", "Helvetica Neue", sans-serif;
-  background:
-    radial-gradient(1200px 700px at 18% 12%, rgba(90,169,255,.16), transparent 60%),
-    radial-gradient(900px 600px at 85% 18%, rgba(255,211,106,.11), transparent 55%),
-    linear-gradient(180deg, var(--bg0), var(--bg1));
-  overflow-x:hidden;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+
+  /* Base */
+  background:
+    radial-gradient(1200px 720px at 18% 10%, rgba(90,169,255,.12), transparent 62%),
+    radial-gradient(980px 620px at 85% 18%, rgba(255,211,106,.09), transparent 58%),
+    linear-gradient(180deg, var(--bg0), var(--bg1));
+
+  overflow-x:hidden;
 }
 
-/* Fundo com imagem dinâmica (por cargo) */
+/* HERO BACKGROUND (cinematográfico) */
 body::before{
   content:"";
   position: fixed;
-  inset: 0;
-  z-index: -3;
-  opacity: .24;
-  background-image: var(--bg-img, url("/assets/municipal.png"));
+  inset: -20px;
+  z-index: -4;
+  background-image: var(--bg-img);
   background-size: cover;
   background-position: center;
-  filter: blur(3px) saturate(1.25) contrast(1.06);
-  transform: scale(1.06);
+  background-repeat: no-repeat;
+
+  /* AAA: imagem forte + leve blur (não esconde a cena) */
+  opacity: .72;
+  filter: blur(1.2px) saturate(1.45) contrast(1.14) brightness(.92);
+
+  transform: scale(1.08);
   transition: opacity .35s ease, filter .35s ease, transform .35s ease;
 }
 
-/* vinheta + luz */
+/* LUZ + VINHETA (controlada) */
 body::after{
   content:"";
   position: fixed;
   inset: 0;
-  z-index: -2;
+  z-index: -3;
   pointer-events:none;
   background:
-    radial-gradient(1000px 520px at 50% 0%, rgba(0,0,0,.0), rgba(0,0,0,.55) 72%),
-    radial-gradient(1200px 900px at 50% 60%, rgba(0,0,0,.22), rgba(0,0,0,.78)),
-    linear-gradient(180deg, rgba(0,0,0,.18), rgba(0,0,0,.62));
+    /* “luz” no topo */
+    radial-gradient(1100px 620px at 50% 0%, rgba(255,255,255,.06), rgba(0,0,0,0) 62%),
+    /* bloom lateral suave */
+    radial-gradient(900px 520px at 12% 22%, rgba(90,169,255,.14), rgba(0,0,0,0) 64%),
+    radial-gradient(900px 520px at 88% 20%, rgba(255,211,106,.10), rgba(0,0,0,0) 66%),
+    /* vinheta (cinema) */
+    radial-gradient(1400px 900px at 50% 60%, rgba(0,0,0,.12), rgba(0,0,0,.72) 74%),
+    linear-gradient(180deg, rgba(0,0,0,.10), rgba(0,0,0,.52));
 }
 
-/* Layout geral do app */
+/* GRAIN CINEMATOGRÁFICO (super leve) */
+@keyframes grainMove{
+  0%{ transform: translate(0,0); }
+  20%{ transform: translate(-2%, 1%); }
+  40%{ transform: translate(1%, -2%); }
+  60%{ transform: translate(-1%, -1%); }
+  80%{ transform: translate(2%, 0%); }
+  100%{ transform: translate(0,0); }
+}
+#filmGrain{
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  pointer-events:none;
+  opacity: .14; /* ajuste fino do “cinema” */
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)' opacity='.55'/%3E%3C/svg%3E");
+  background-size: 240px 240px;
+  mix-blend-mode: overlay;
+  animation: grainMove 7s steps(2) infinite;
+}
+
+/* APP WRAP */
 #app{
   min-height: 100%;
-  padding: 12px 10px 28px;
+  padding: 14px 12px 30px;
 }
 
-/* Melhorias gerais para texto */
-h1, h2, h3{
-  margin: 0;
-  letter-spacing: .2px;
-}
-h1{ font-size: 26px; }
-h2{ font-size: 18px; color: rgba(238,243,255,.9); }
-small{ color: var(--muted); }
-
-/* Card/Painel genérico */
-.card, .panel, .box, .container, .modal, .dialog, section{
-  background: var(--glass);
-  border: 1px solid var(--stroke);
-  border-radius: var(--r22);
-  box-shadow: var(--shadow);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-}
-
-/* “Painel principal” (o grande onde está o status) */
+/* Respiro + limite */
 #app > *{
-  max-width: 980px;
+  max-width: 1040px;
   margin-left: auto;
   margin-right: auto;
 }
 
-/* Botões AAA */
+/* Tipografia premium */
+h1, h2, h3{ margin:0; letter-spacing: .2px; }
+h1{
+  font-size: 28px;
+  line-height: 1.1;
+  text-shadow: 0 2px 18px rgba(0,0,0,.35);
+}
+h2{
+  font-size: 18px;
+  color: rgba(242,246,255,.92);
+}
+p, small{ color: var(--muted); }
+
+/* GLASS PREMIUM (aplica em cards/painéis e na maioria das seções) */
+.card, .panel, .box, .container, .modal, .dialog, section{
+  background: linear-gradient(180deg, rgba(14,18,30,.72), rgba(14,18,30,.42));
+  border: 1px solid var(--stroke);
+  border-radius: var(--r28);
+  box-shadow: var(--shadowCard);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+/* “borda interna” para dar cara AAA */
+.card::before, .panel::before, .box::before, .container::before, section::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  border-radius: inherit;
+  pointer-events:none;
+  border: 1px solid rgba(255,255,255,.06);
+  mask: linear-gradient(#000, transparent 65%);
+  -webkit-mask: linear-gradient(#000, transparent 65%);
+}
+
+/* Evita bug: muitos elementos não são position:relative */
+.card, .panel, .box, .container, section{
+  position: relative;
+}
+
+/* Botões AAA premium */
 button{
   appearance:none;
-  border: 1px solid var(--stroke);
+  border: 1px solid rgba(255,255,255,.14);
   background: rgba(255,255,255,.06);
   color: var(--txt);
-  border-radius: 16px;
+  border-radius: var(--r18);
   padding: 12px 14px;
-  font-weight: 750;
-  letter-spacing:.2px;
-  box-shadow: 0 8px 22px rgba(0,0,0,.25);
-  transition: transform .10s ease, border-color .16s ease, background .16s ease, box-shadow .16s ease;
+  font-weight: 820;
+  letter-spacing:.25px;
+  box-shadow: var(--shadowBtn);
+  transition: transform .10s ease, border-color .16s ease, background .16s ease, box-shadow .16s ease, filter .16s ease;
   cursor: pointer;
 }
 button:hover{
-  border-color: var(--stroke2);
+  border-color: rgba(255,255,255,.22);
   background: rgba(255,255,255,.09);
-  box-shadow: 0 12px 28px rgba(0,0,0,.32);
+  box-shadow: 0 14px 34px rgba(0,0,0,.42);
 }
-button:active{ transform: scale(.985); }
+button:active{
+  transform: translateY(1px) scale(.985);
+  filter: brightness(.98);
+}
 button:disabled{ opacity:.55; cursor:not-allowed; }
 
-/* Botões “primários” via heurística (primeiro botão no grupo costuma ser ação principal) */
-button.primary, .primary button{
+/* Botões primários (heurística suave: se tiver classe) */
+button.primary{
   border-color: rgba(90,169,255,.40);
-  background: linear-gradient(180deg, rgba(90,169,255,.32), rgba(90,169,255,.14));
+  background: linear-gradient(180deg, rgba(90,169,255,.30), rgba(90,169,255,.12));
 }
-button.danger, .danger button{
-  border-color: rgba(255,90,90,.35);
+button.danger{
+  border-color: rgba(255,90,90,.40);
   background: linear-gradient(180deg, rgba(255,90,90,.22), rgba(255,90,90,.10));
 }
 
-/* Inputs AAA */
-input, select, textarea{
-  width: 100%;
-  background: rgba(0,0,0,.20);
-  border: 1px solid var(--stroke);
-  color: var(--txt);
-  border-radius: 14px;
-  padding: 11px 12px;
-  outline: none;
-  transition: border-color .15s ease, box-shadow .15s ease;
+/* Pills/tabs (muitos jogos AAA usam pill tabs) */
+.tabbar, .tabs, nav{
+  display:flex;
+  gap: 10px;
+  flex-wrap: wrap;
 }
-input:focus, select:focus, textarea:focus{
-  border-color: rgba(90,169,255,.55);
-  box-shadow: 0 0 0 4px rgba(90,169,255,.12);
+.tabbar button, .tabs button, nav button{
+  padding: 10px 13px;
+  border-radius: 999px;
+  background: rgba(255,255,255,.05);
 }
 
-/* Progress bars AAA */
+/* Inputs */
+input, select, textarea{
+  width: 100%;
+  background: rgba(0,0,0,.18);
+  border: 1px solid rgba(255,255,255,.14);
+  color: var(--txt);
+  border-radius: var(--r16);
+  padding: 11px 12px;
+  outline: none;
+  transition: border-color .15s ease, box-shadow .15s ease, background .15s ease;
+}
+input:focus, select:focus, textarea:focus{
+  border-color: rgba(90,169,255,.58);
+  box-shadow: 0 0 0 4px rgba(90,169,255,.14);
+  background: rgba(0,0,0,.22);
+}
+
+/* Progress bars premium */
 progress{
   width:100%;
   height: 11px;
@@ -166,35 +250,27 @@ progress::-webkit-progress-value{
   border-radius: 999px;
 }
 
-/* Tabs “pill” (se o app usa botões como tabs, já melhora) */
-.tabbar, .tabs, nav{
-  display:flex;
-  gap: 10px;
-  flex-wrap: wrap;
-}
-.tabbar button, .tabs button, nav button{
-  padding: 10px 12px;
-  border-radius: 999px;
-  background: rgba(255,255,255,.05);
-}
-
-/* Micro animação suave para entradas */
+/* Animação de entrada */
 @keyframes fadeUp{
-  from{ opacity:0; transform: translateY(6px); }
+  from{ opacity:0; transform: translateY(8px); }
   to{ opacity:1; transform: translateY(0); }
 }
-#app{
-  animation: fadeUp .22s ease both;
-}
+#app{ animation: fadeUp .22s ease both; }
 
-/* Debug bar — mantém legível em cima do tema */
+/* Debug bar: menor e discreto */
 #debugBar{
   border-radius: 0 0 18px 18px;
 }
 
-/* Mobile: mais respiro */
+/* Mobile tuning */
 @media (max-width: 480px){
-  #app{ padding: 12px 10px 28px; }
-  h1{ font-size: 24px; }
+  #app{ padding: 14px 12px 30px; }
+  h1{ font-size: 26px; }
   button{ padding: 11px 12px; }
+}
+
+/* Acessibilidade: reduz animações */
+@media (prefers-reduced-motion: reduce){
+  #app{ animation: none; }
+  #filmGrain{ animation: none; }
 }

@@ -11,7 +11,7 @@
   <link rel="manifest" href="/manifest.webmanifest" />
   <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
 
-  <!-- ✅ TEMA AAA -->
+  <!-- ✅ TEMA AAA CINEMATOGRÁFICO -->
   <link rel="stylesheet" href="/src/ui/theme.css" />
 
   <style>
@@ -19,21 +19,21 @@
       position: sticky;
       top: 0;
       z-index: 9999;
-      background: rgba(0,0,0,.72);
+      background: rgba(0,0,0,.52);
       border-bottom: 1px solid rgba(255,255,255,.12);
-      padding: 10px 12px;
-      font-size: 12px;
-      line-height: 1.35;
+      padding: 8px 10px;
+      font-size: 11px;
+      line-height: 1.25;
       backdrop-filter: blur(12px);
       -webkit-backdrop-filter: blur(12px);
     }
-    #debugBar strong{ font-size: 13px; }
-    #dbgLog{ margin-top: 8px; }
+    #debugBar strong{ font-size: 12px; }
+    #dbgLog{ margin-top: 6px; }
     .dbg-ok{ color:#7CFF9B; }
     .dbg-warn{ color:#FFD36A; }
     .dbg-err{ color:#FF7A7A; }
-    .dbg-row{ margin-top:6px; opacity:.95; white-space: pre-wrap; word-break: break-word; }
-    .dbg-btns{ margin-top:8px; display:flex; gap:8px; flex-wrap:wrap; }
+    .dbg-row{ margin-top:5px; opacity:.95; white-space: pre-wrap; word-break: break-word; }
+    .dbg-btns{ margin-top:6px; display:flex; gap:8px; flex-wrap:wrap; }
     .dbg-btn{
       border:1px solid rgba(255,255,255,.18);
       background: rgba(255,255,255,.06);
@@ -46,6 +46,9 @@
 </head>
 
 <body>
+  <!-- ✅ Grain cinematográfico -->
+  <div id="filmGrain"></div>
+
   <div id="debugBar">
     <strong>DEBUG:</strong> <span id="dbgStatus" class="dbg-warn">iniciando...</span>
     <div id="dbgLog" class="dbg-row"></div>
@@ -133,7 +136,7 @@
         }
 
         setStatus("ok", "scripts carregados");
-        logLine("ok", "Se ainda tiver erro, ele será mostrado acima.");
+        logLine("ok", "Cinemático AAA aplicado.");
       }
 
       boot();

@@ -1,0 +1,62 @@
+[
+  {
+    "id": "vereador",
+    "nome": "Vereador",
+    "nivel": 1,
+    "mandatoMeses": 48,
+    "tipo": "legislativo",
+    "descricao": "Representa a população no município; propõe e vota leis municipais e fiscaliza o Executivo.",
+    "acoes": ["propor_lei","votar_lei","ouvir_comunidade"],
+    "eleicao": { "sistema": "proporcional", "turnos": 1 }
+  },
+  {
+    "id": "deputado_federal",
+    "nome": "Deputado Federal",
+    "nivel": 2,
+    "mandatoMeses": 48,
+    "tipo": "legislativo",
+    "descricao": "Atua na Câmara dos Deputados; propõe e vota leis federais e fiscaliza o Executivo.",
+    "acoes": ["propor_lei","votar_lei","articular_bancada"],
+    "eleicao": { "sistema": "proporcional", "turnos": 1 }
+  },
+  {
+    "id": "senador",
+    "nome": "Senador",
+    "nivel": 3,
+    "mandatoMeses": 96,
+    "tipo": "legislativo",
+    "descricao": "Atua no Senado; vota leis e temas federativos; participa de sabatinas e aprovações importantes.",
+    "acoes": ["propor_lei","votar_lei","negociar_emendas"],
+    "eleicao": { "sistema": "majoritario", "turnos": 1 }
+  },
+  {
+    "id": "prefeito",
+    "nome": "Prefeito",
+    "nivel": 3,
+    "mandatoMeses": 48,
+    "tipo": "executivo",
+    "descricao": "Chefe do Executivo municipal; executa orçamento e políticas públicas locais.",
+    "acoes": ["executar_orcamento","nomear_secretarios","sancionar_ou_vetar"],
+    "eleicao": { "sistema": "majoritario", "turnos": 2 }
+  },
+  {
+    "id": "governador",
+    "nome": "Governador",
+    "nivel": 4,
+    "mandatoMeses": 48,
+    "tipo": "executivo",
+    "descricao": "Chefe do Executivo estadual; coordena políticas estaduais e orçamento.",
+    "acoes": ["executar_orcamento","nomear_secretarios","gerir_crises"],
+    "eleicao": { "sistema": "majoritario", "turnos": 2 }
+  },
+  {
+    "id": "presidente",
+    "nome": "Presidente da República",
+    "nivel": 5,
+    "mandatoMeses": 48,
+    "tipo": "executivo",
+    "descricao": "Chefe do Executivo federal; lidera governo, política econômica e relações internacionais.",
+    "acoes": ["executar_orcamento","nomear_ministros","diplomacia","gerir_crises"],
+    "eleicao": { "sistema": "majoritario", "turnos": 2 }
+  }
+]

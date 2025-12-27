@@ -1,0 +1,55 @@
+[
+  {
+    "id": "acao_base",
+    "nome": "Reunião com a base",
+    "descricao": "Você encontra lideranças locais e ouve demandas do bairro.",
+    "custo": 0,
+    "impactos": {
+      "opinioes": { "pobres": 2, "classe_media": 1 },
+      "reputacao": 1
+    }
+  },
+  {
+    "id": "acao_empresarios",
+    "nome": "Reunião com empresários",
+    "descricao": "Você conversa com empresários e discute investimento na cidade.",
+    "custo": 0,
+    "impactos": {
+      "opinioes": { "empresarios": 2, "classe_media": 1, "pobres": -1 },
+      "recursos": 80,
+      "governabilidade": 1
+    }
+  },
+  {
+    "id": "acao_visita_bairro",
+    "nome": "Visitar bairro",
+    "descricao": "Você visita um bairro e fiscaliza serviços públicos.",
+    "custo": 0,
+    "impactos": {
+      "opinioes": { "pobres": 2, "servidores": 1 },
+      "recursos": -20,
+      "reputacao": 1
+    }
+  },
+  {
+    "id": "acao_entrevista",
+    "nome": "Entrevista na mídia",
+    "descricao": "Você dá entrevista e tenta convencer a opinião pública.",
+    "custo": 0,
+    "impactos": {
+      "opinioes": { "classe_media": 2 },
+      "popularidade": 1,
+      "reputacao": 1
+    }
+  },
+  {
+    "id": "acao_campanha_digital",
+    "nome": "Campanha digital",
+    "descricao": "Você investe em redes sociais para fortalecer sua imagem.",
+    "custo": 120,
+    "impactos": {
+      "opinioes": { "classe_media": 1, "progressistas": 1, "conservadores": 1 },
+      "popularidade": 2
+    }
+  }
+]

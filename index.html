@@ -8,10 +8,11 @@
 
   <title>Simulador Político</title>
 
-  <link rel="manifest" href="/manifest.webmanifest" />
-  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <!-- IMPORTANTE: caminhos RELATIVOS (funciona no GitHub Pages e Vercel) -->
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="icon" href="favicon.svg" type="image/svg+xml" />
 
-  <link rel="stylesheet" href="/src/ui/theme.css" />
+  <link rel="stylesheet" href="src/ui/theme.css" />
 
   <style>
     /* Mantém o app invisível até boot finalizar (premium) */
@@ -270,10 +271,7 @@
 
       btnReload.onclick = () => location.reload();
       btnHard.onclick = async () => {
-        try {
-          localStorage.clear();
-          sessionStorage.clear();
-        } catch {}
+        try { localStorage.clear(); sessionStorage.clear(); } catch {}
         location.href = location.href.split("#")[0] + "?t=" + Date.now();
       };
 
@@ -284,15 +282,10 @@
         }catch(e){}
       }
 
-      // IMPORTANTE:
-      // Não mostramos overlay para erros de runtime (durante gameplay).
-      // Isso evita “Falha ao iniciar” ao clicar em botões como Avançar Mês.
-      // Se ocorrer erro interno, ele ficará no console do navegador.
-
       async function loadScript(src){
         return new Promise((resolve, reject) => {
           const s = document.createElement("script");
-          s.src = src;
+          s.src = src;         // relativo!
           s.async = false;
           s.onload = () => resolve(true);
           s.onerror = () => reject(new Error("Falha ao carregar: " + src));
@@ -302,13 +295,13 @@
 
       async function boot(){
         const scripts = [
-          "/src/data/data.js",
-          "/src/core/models.js",
-          "/src/core/save.js",
-          "/src/core/sim.js",
-          "/src/ui/app.js",
-          "/src/ui/bg.js",
-          "/src/ui/aaa.js"
+          "src/data/data.js",
+          "src/core/models.js",
+          "src/core/save.js",
+          "src/core/sim.js",
+          "src/ui/app.js",
+          "src/ui/bg.js",
+          "src/ui/aaa.js"
         ];
 
         try{

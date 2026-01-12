@@ -11,11 +11,10 @@
   <link rel="manifest" href="/manifest.webmanifest" />
   <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
 
-  <!-- Tema AAA (você já atualizou) -->
   <link rel="stylesheet" href="/src/ui/theme.css" />
 
   <style>
-    /* Mantém o app invisível até o boot terminar (evita “piscadas” e fica premium) */
+    /* Mantém o app invisível até boot finalizar (premium) */
     #app{
       opacity: 0;
       transform: translateY(6px);
@@ -28,7 +27,7 @@
       pointer-events: auto;
     }
 
-    /* Splash Cinemática (primeira impressão AAA) */
+    /* Splash Cinemática (AAA) */
     #splash{
       position: fixed;
       inset: 0;
@@ -151,7 +150,7 @@
       line-height:1.35;
     }
 
-    /* Overlay de erro — só aparece se o boot falhar */
+    /* Overlay elegante — APENAS se falhar no BOOT (carregamento) */
     #bootError{
       position: fixed;
       inset: 0;
@@ -215,7 +214,6 @@
       filter: brightness(.98);
     }
 
-    /* Mobile refinado */
     @media (max-width: 480px){
       .splash-card{ padding: 18px 16px; }
       .title h1{ font-size: 22px; }
@@ -225,10 +223,8 @@
 </head>
 
 <body>
-  <!-- Grain (já usado no tema AAA) -->
   <div id="filmGrain"></div>
 
-  <!-- Splash Cinemática -->
   <div id="splash" aria-hidden="true">
     <div class="splash-card">
       <div class="splash-top">
@@ -248,7 +244,6 @@
     </div>
   </div>
 
-  <!-- Overlay elegante (só se der erro) -->
   <div id="bootError" role="alert" aria-live="polite">
     <div class="err-card">
       <h2>Falha ao iniciar</h2>
@@ -282,17 +277,17 @@
         location.href = location.href.split("#")[0] + "?t=" + Date.now();
       };
 
-      function showError(){
+      function showBootError(){
         try{
           bootError.style.display = "grid";
-          // mantém splash escondida se falhar
           splash.classList.add("hide");
         }catch(e){}
       }
 
-      // Se ocorrer erro JS, não mostra debug na tela, mas ativa overlay elegante
-      window.addEventListener("error", () => showError());
-      window.addEventListener("unhandledrejection", () => showError());
+      // IMPORTANTE:
+      // Não mostramos overlay para erros de runtime (durante gameplay).
+      // Isso evita “Falha ao iniciar” ao clicar em botões como Avançar Mês.
+      // Se ocorrer erro interno, ele ficará no console do navegador.
 
       async function loadScript(src){
         return new Promise((resolve, reject) => {
@@ -321,14 +316,12 @@
             await loadScript(src);
           }
 
-          // Ativa HUD e some com splash suavemente (AAA)
           app.classList.add("ready");
           setTimeout(() => splash.classList.add("hide"), 120);
           setTimeout(() => splash.remove(), 900);
 
         }catch(e){
-          // Não mostra texto na tela principal — só overlay elegante
-          showError();
+          showBootError();
         }
       }
 

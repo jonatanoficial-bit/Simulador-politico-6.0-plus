@@ -1,8 +1,5 @@
-/* src/ui/theme.css — AAA PREMIUM HUD FINAL
-   - Cinematográfico + HUD premium
-   - CTA real (Avançar Mês)
-   - Tabs estilo console
-   - Cards e chips com acabamento AAA
+/* src/ui/theme.css — AAA PREMIUM HUD FINAL (compatível GitHub Pages)
+   OBS: fundo agora usa caminho relativo ao CSS (/src/ui/ -> ../../assets/)
 */
 
 :root{
@@ -30,7 +27,8 @@
   --r22: 22px;
   --r28: 28px;
 
-  --bg-img: url("/assets/municipal.png");
+  /* IMPORTANTE: como o CSS fica em src/ui, voltamos 2 pastas até a raiz */
+  --bg-img: url("../../assets/municipal.png");
 }
 
 *{ box-sizing:border-box; }
@@ -154,7 +152,7 @@ p, small{ color: var(--muted); }
   box-shadow: var(--shadowDeep);
 }
 
-/* STAT CHIPS (visual premium nos bloquinhos de status) */
+/* STAT CHIPS */
 .aaa .stat-chip{
   background: rgba(255,255,255,.05);
   border: 1px solid rgba(255,255,255,.10);
@@ -187,7 +185,7 @@ button:active{
 }
 button:disabled{ opacity:.55; cursor:not-allowed; }
 
-/* CTA AAA: Avançar Mês */
+/* CTA AAA */
 .aaa .btn-primary{
   border-color: rgba(90,169,255,.44);
   background:
@@ -201,7 +199,7 @@ button:disabled{ opacity:.55; cursor:not-allowed; }
     linear-gradient(180deg, rgba(90,169,255,.44), rgba(90,169,255,.16));
 }
 
-/* Novo jogo (risco/decisão) */
+/* Novo jogo */
 .aaa .btn-danger{
   border-color: rgba(255,90,90,.46);
   background:
@@ -209,12 +207,12 @@ button:disabled{ opacity:.55; cursor:not-allowed; }
     linear-gradient(180deg, rgba(255,90,90,.26), rgba(255,90,90,.10));
 }
 
-/* Botões neutros */
+/* Neutros */
 .aaa .btn-ghost{
   background: rgba(0,0,0,.14);
 }
 
-/* Tabs estilo console HUD */
+/* Tabs HUD */
 .aaa .tab-btn{
   padding: 10px 14px;
   border-radius: 999px;
@@ -259,14 +257,6 @@ progress::-webkit-progress-value{
   background: linear-gradient(90deg, rgba(90,169,255,.98), rgba(255,211,106,.88));
   border-radius: 999px;
 }
-
-/* DEBUG: modo dev discreto (não estraga a primeira impressão) */
-#debugBar{
-  opacity: .82;
-  transform: translateY(-2px);
-  border-radius: 0 0 18px 18px;
-}
-#debugBar:hover{ opacity: .98; }
 
 /* Mobile tuning */
 @media (max-width: 480px){

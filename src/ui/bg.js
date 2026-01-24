@@ -9,14 +9,14 @@
     const casa = state?.casaId || state?.casaAtualId || "";
 
     // prioridade por cargo
-    if (cargo === "presidente") return 'url("/assets/president.png")';
-    if (cargo === "governador") return 'url("/assets/governor.png")';
-    if (cargo === "prefeito") return 'url("/assets/mayor.png")';
+    if (cargo === "presidente") return 'url("assets/president.png")';
+    if (cargo === "governador") return 'url("assets/governor.png")';
+    if (cargo === "prefeito") return 'url("assets/mayor.png")';
 
     // legislativo por casa
-    if (casa.includes("sen")) return 'url("/assets/senate.png")';
-    if (casa.includes("federal")) return 'url("/assets/federal.png")';
-    if (casa.includes("assembly") || casa.includes("assembleia")) return 'url("/assets/assembly.png")';
+    if (casa.includes("sen")) return 'url("assets/senate.png")';
+    if (casa.includes("federal")) return 'url("assets/federal.png")';
+    if (casa.includes("assembly") || casa.includes("assembleia")) return 'url("assets/assembly.png")';
 
     // padrão municipal
     return 'url("assets/municipal.png")';
@@ -26,6 +26,7 @@
     try{
       const state = window.SIM_POL?.sim?.getState?.() || window.SIM_POL?.state || null;
       const bg = pickBg(state);
+      document.body.style.setProperty("--bg-image", bg);
       document.body.style.setProperty("--bg-img", bg);
     }catch(e){}
   }

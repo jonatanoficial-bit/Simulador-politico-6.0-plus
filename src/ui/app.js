@@ -227,7 +227,7 @@
 
     return el("div", { class:"controls" }, [
       el("div", { class:"controlsLeft" }, [
-        el("button", { class:"btn primary", onclick: () => { state = sim.nextTurn(state, data); commit(); } }, ["Avançar Mês"]),
+        el("button", { class:"btn primary", disabled: !!state.gameOver, onclick: () => { if(state.gameOver) return; state = sim.nextTurn(state, data); commit(); } }, ["Avançar Mês"]),
         el("button", { class:"btn", onclick: () => { save.save(state); renderToast("Jogo salvo."); } }, ["Salvar"]),
         el("button", { class:"btn", onclick: () => { state = save.load() || state; renderToast("Carregado."); render(); } }, ["Carregar"]),
         el("button", { class:"btn danger", onclick: () => { state = sim.newGameFromData(data); commit(); renderToast("Novo jogo iniciado."); } }, ["Novo Jogo"]),
@@ -301,7 +301,7 @@
         ? el("div", { class:"warn" }, ["Eleições em andamento — vá para a aba Eleições."])
         : el("div", { class:"ok" }, ["Sem eleição ativa."]),
       el("div", { class:"row" }, [
-        el("button", { class:"btn primary", onclick: () => { state = sim.nextTurn(state, data); commit(); } }, ["Avançar Mês"]),
+        el("button", { class:"btn primary", disabled: !!state.gameOver, onclick: () => { if(state.gameOver) return; state = sim.nextTurn(state, data); commit(); } }, ["Avançar Mês"]),
         el("button", { class:"btn", onclick: () => setTab("eleicoes") }, ["Eleições"])
       ])
     ]));
@@ -763,7 +763,35 @@
     document.head.appendChild(st);
   }
 
-  function render(){
+  
+  // ---- Game Over Modal ----
+  function gameOverOverlay(){
+    if (!state.gameOver) return null;
+    const go = state.gameOver;
+    const motivo = go.motivo || "Fim de jogo";
+    const cargo = go.cargo ? `Cargo: ${go.cargo}` : "";
+    const when = (go.ano && go.mes) ? `Ano ${go.ano} • Mês ${go.mes}` : "";
+    const score = (typeof go.score === "number") ? `Score eleitoral: ${go.score}` : "";
+
+    return el("div", { class:"modalOverlay" }, [
+      el("div", { class:"modalCard" }, [
+        el("div", { class:"modalTitle" }, [motivo]),
+        el("div", { class:"modalBody" }, [
+          cargo ? el("div", {}, [cargo]) : null,
+          when ? el("div", {}, [when]) : null,
+          score ? el("div", {}, [score]) : null,
+          el("div", { class:"muted", style:"margin-top:10px" }, ["Seu mandato terminou. Você pode iniciar um novo jogo."])
+        ].filter(Boolean)),
+        el("div", { class:"modalActions" }, [
+          el("button", { class:"btn primary", onclick: () => { state = sim.newGameFromData(data); commit(); render(); } }, ["Novo Jogo"]),
+          el("button", { class:"btn", onclick: () => { // fechar apenas a janela
+            state.gameOver._hidden = true; commit(); render();
+          } }, ["Fechar"])
+        ])
+      ])
+    ]);
+  }
+function render(){
     ensureBaseStyles();
 
     const root = $("#app");
@@ -779,6 +807,11 @@
     ]);
 
     root.appendChild(wrap);
+
+    if (state.gameOver && !state.gameOver._hidden){
+      const ov = gameOverOverlay();
+      if (ov) root.appendChild(ov);
+    }
   }
 
   // ---- Boot ----

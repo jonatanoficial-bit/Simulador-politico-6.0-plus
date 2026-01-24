@@ -817,7 +817,7 @@
 
   function startElection(state, data){
     state.emEleicao = true;
-    state.eleicao = { etapa: "escolher_cargo", cargoAlvoId: null, boostCampanha: 0, custoCampanha: 0 };
+    state.eleicao = { etapa: "escolher_cargo", cargoOrigId: state.cargoId, cargoAlvoId: null, boostCampanha: 0, custoCampanha: 0 };
 
     const cargoAtual = getCargo(data, state.cargoId);
     state.logs.push(mkLog(`Mandato encerrado como ${cargoAtual ? cargoAtual.nome : state.cargoId}.`));
@@ -908,25 +908,44 @@
     const random = Math.floor(Math.random() * 21) - 10;
     const score = state.opiniao.geral + (state.eleicao.boostCampanha || 0) + bonusHonest - penalRisco + random;
     const venceu = score >= 55;
+    const cargoOrigId = state.eleicao.cargoOrigId || state.cargoId;
 
     if (venceu){
       state.cargoId = cargoAlvoId;
-      state.mandatoMesesRestantes = 6;
+      state.mandatoMesesRestantes = (getCargo(data, cargoAlvoId)?.mandatoMeses || 48);
       state.casaAtualId = getCasaPorCargo(state.cargoId);
       const cargo = getCargo(data, state.cargoId);
       state.logs.push(mkLog(`Vitória eleitoral! Score=${score}. Você agora é ${cargo ? cargo.nome : cargoAlvoId}.`));
 
       if (isExecutivo(state.cargoId)){
+        ensureCoalizao(state);
         state.coalizao.forca = clamp(state.governabilidade, 0, 100);
         state.logs.push(mkLog("Executivo: agora você precisa sancionar/vetar leis aprovadas pelo Legislativo."));
       }
 
       state.leisPendentes = pickRandom(data.leis || [], 3);
     } else {
-      const atual = getCargo(data, state.cargoId);
-      state.mandatoMesesRestantes = 6;
-      state.logs.push(mkLog(`Derrota eleitoral. Score=${score}. Você permanece como ${atual ? atual.nome : state.cargoId}.`));
-      state.leisPendentes = pickRandom(data.leis || [], 3);
+      const alvo = getCargo(data, cargoAlvoId);
+      // Se era reeleição no mesmo cargo, encerra a carreira (fim de jogo).
+      if (cargoAlvoId === cargoOrigId){
+        const atual = getCargo(data, cargoOrigId);
+        state.gameOver = {
+          motivo: "Derrota eleitoral",
+          cargo: atual ? atual.nome : cargoOrigId,
+          score,
+          ano: state.ano,
+          mes: state.mes
+        };
+        state.logs.push(mkLog(`Derrota eleitoral. Score=${score}. Seu mandato terminou como ${atual ? atual.nome : cargoOrigId}.`));
+      } else {
+        // Perdeu uma tentativa de promoção: continua no cargo de origem.
+        const atual = getCargo(data, cargoOrigId);
+        state.cargoId = cargoOrigId;
+        state.mandatoMesesRestantes = (atual?.mandatoMeses || 48);
+        state.casaAtualId = getCasaPorCargo(state.cargoId);
+        state.logs.push(mkLog(`Derrota eleitoral. Score=${score}. Você não conquistou ${alvo ? alvo.nome : cargoAlvoId} e permanece como ${atual ? atual.nome : cargoOrigId}.`));
+        state.leisPendentes = pickRandom(data.leis || [], 3);
+      }
     }
 
     state.emEleicao = false;
@@ -1139,6 +1158,11 @@
   function nextTurn(state, data){
     if (state.emEleicao){
       state.logs.push(mkLog("Período eleitoral ativo. Resolva a eleição para continuar."));
+      return state;
+    }
+
+    if (state.gameOver){
+      state.logs.push(mkLog("Jogo encerrado. Inicie um novo jogo para continuar."));
       return state;
     }
 

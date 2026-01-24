@@ -22,12 +22,26 @@
     return 'url("assets/municipal.png")';
   }
 
+  let lastBg = null;
   function apply(){
     try{
       const state = window.SIM_POL?.sim?.getState?.() || window.SIM_POL?.state || null;
       const bg = pickBg(state);
+      if (!bg) return;
+
+      // evita re-aplicar igual
+      if (bg === lastBg) return;
+      lastBg = bg;
+
+      // fade suave
+      document.body.style.setProperty("--bg-opacity", "0");
+      // aplica imagem
       document.body.style.setProperty("--bg-image", bg);
       document.body.style.setProperty("--bg-img", bg);
+
+      requestAnimationFrame(() => {
+        document.body.style.setProperty("--bg-opacity", "0.26");
+      });
     }catch(e){}
   }
 

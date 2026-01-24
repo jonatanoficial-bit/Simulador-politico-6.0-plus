@@ -81,7 +81,7 @@
   async function registerSW(){
     if (!("serviceWorker" in navigator)) return;
     try {
-      const reg = await navigator.serviceWorker.register("/sw.js");
+      const reg = await navigator.serviceWorker.register("sw.js");
       // Atualiza automaticamente quando houver versão nova
       if (reg.waiting) {
         reg.waiting.postMessage({ type: "SKIP_WAITING" });
@@ -95,6 +95,13 @@
   let state = null;
   let activeTab = "painel";
 
+  function exposeState(){
+    window.SIM_POL.state = state;
+    if (window.SIM_POL.sim && typeof window.SIM_POL.sim.getState !== "function"){
+      window.SIM_POL.sim.getState = () => state;
+    }
+  }
+
   // ---- Persistência ----
   function loadOrNew(){
     try {
@@ -106,6 +113,7 @@
 
   function commit(){
     save.save(state);
+    exposeState();
     render();
   }
 
@@ -135,6 +143,32 @@
     ]);
   }
 
+
+  function sparkline(values){
+    const vals = (values || []).map(v => Number(v||0));
+    if (!vals.length) return el("div", { class:"muted" }, ["Sem histórico ainda."]);
+    const min = Math.min(...vals);
+    const max = Math.max(...vals);
+    const span = (max - min) || 1;
+    const bars = vals.map(v => {
+      const h = 18 + Math.round(((v - min) / span) * 62); // 18..80
+      return el("div", { class:"sparkBar", style:`height:${h}%` }, []);
+    });
+    return el("div", { class:"sparkWrap" }, bars);
+  }
+
+  function deltaRow(label, value, isMoney=false){
+    const v = Number(value||0);
+    const sign = v > 0 ? "+" : (v < 0 ? "-" : "");
+    const abs = Math.abs(v);
+    const txt = isMoney ? `${sign}${fmt.money(abs)}` : `${sign}${abs}${label.includes('%') ? '' : ''}`;
+    const cls = v > 0 ? "delta up" : (v < 0 ? "delta down" : "delta flat");
+    const valTxt = isMoney ? `${v>0?"+":"-"}R$ ${abs.toLocaleString("pt-BR")}` : `${sign}${abs}`;
+    return el("div", { class:"deltaItem" }, [
+      el("div", { class:"deltaLabel" }, [label]),
+      el("div", { class: cls }, [valTxt])
+    ]);
+  }
   function smallHint(t){
     return el("div", { class:"hint" }, [t]);
   }
@@ -270,6 +304,38 @@
       progressBar("Conservadores", o.conservadores ?? 50),
     ]));
 
+
+    // Tendências (histórico)
+    const hist = Array.isArray(state.history) ? state.history.slice(-12) : [];
+    const hPop = hist.map(h => h.pop);
+    const hGov = hist.map(h => h.gov);
+    const hRep = hist.map(h => h.rep);
+    const hRec = hist.map(h => h.rec);
+
+    cards.push(card("Tendências (últimos 12 meses)", [
+      smallHint("Veja a tendência dos principais indicadores. Quanto mais consistente, melhor seu desempenho."),
+      el("div", { class:"trendGrid" }, [
+        el("div", { class:"trendBox" }, [el("div",{class:"trendTitle"},["Popularidade"]), sparkline(hPop)]),
+        el("div", { class:"trendBox" }, [el("div",{class:"trendTitle"},["Governabilidade"]), sparkline(hGov)]),
+        el("div", { class:"trendBox" }, [el("div",{class:"trendTitle"},["Reputação"]), sparkline(hRep)]),
+        el("div", { class:"trendBox" }, [el("div",{class:"trendTitle"},["Recursos"]), sparkline(hRec)]),
+      ])
+    ]));
+
+    if (state.lastDelta){
+      const d = state.lastDelta;
+      cards.push(card("Consequências do último mês", [
+        el("div", { class:"deltaGrid" }, [
+          deltaRow("Popularidade", d.pop),
+          deltaRow("Governabilidade", d.gov),
+          deltaRow("Reputação", d.rep),
+          deltaRow("Recursos", d.rec, true),
+          deltaRow("Integridade", d.integ),
+          deltaRow("Risco", d.risco),
+        ]),
+        el("div", { class:"muted" }, [`Período: ${fmt.monthName(d.from.mes)} ${d.from.ano} → ${fmt.monthName(d.to.mes)} ${d.to.ano}`])
+      ]));
+    }
     cards.push(card("Integridade (resumo)", [
       progressBar("Integridade", state.integridade?.nivel ?? 50, "Quanto maior, melhor"),
       progressBar("Risco", state.integridade?.risco ?? 20, "Quanto maior, maior chance de investigação"),
@@ -681,13 +747,31 @@
   }
 
   function screenLogs(){
-    const logs = (state.logs || []).slice().reverse();
+    if (!state.ui) state.ui = {};
+    const filter = String(state.ui.logFilter || "").trim().toLowerCase();
+    const all = (state.logs || []).slice().reverse().map(l => String(l?.t || l));
+    const logs = filter ? all.filter(x => x.toLowerCase().includes(filter)) : all;
+
     const box = card("Diário (últimos acontecimentos)", [
-      logs.length ? el("ul", { class:"list" }, logs.slice(0, 80).map(l => el("li", {}, [String(l?.t || l)]))) : el("div", { class:"muted" }, ["Sem logs."]),
-      el("button", { class:"btn", onclick: () => { state.logs = []; commit(); renderToast("Logs limpos."); } }, ["Limpar logs (opcional)"])
+      el("label", { class:"lbl" }, ["Filtrar"]),
+      el("input", {
+        class:"inp",
+        value: state.ui.logFilter || "",
+        placeholder: "Digite para filtrar (ex: evento, eleição, investigação)...",
+        oninput: (e) => { state.ui.logFilter = e.target.value; render(); }
+      }),
+      el("div", { class:"muted" }, [`Mostrando ${Math.min(logs.length, 120)} de ${all.length} registros.`]),
+      logs.length
+        ? el("ul", { class:"list" }, logs.slice(0, 120).map(t => el("li", {}, [t])))
+        : el("div", { class:"muted" }, ["Nenhum log encontrado com esse filtro."]),
+      el("div", { class:"row" }, [
+        el("button", { class:"btn", onclick: () => { state.ui.logFilter = ""; render(); } }, ["Limpar filtro"]),
+        el("button", { class:"btn danger", onclick: () => { state.logs = []; commit(); renderToast("Logs limpos."); } }, ["Limpar logs"])
+      ])
     ]);
     return el("div", { class:"grid" }, [box]);
   }
+
 
   // ---- Main render ----
   function renderMain(){
@@ -755,6 +839,20 @@
       .inp{ width:100%; padding:10px 12px; border-radius:12px; border:1px solid var(--stroke); background:rgba(0,0,0,.35); color:var(--txt); box-sizing:border-box; }
       .lbl{ display:block; margin-top:10px; margin-bottom:6px; color:var(--muted); font-size:13px; font-weight:800; }
       .split3{ display:grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap:10px; margin-top:10px; }
+      .trendGrid{ display:grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap:10px; margin-top:10px; }
+      @media (max-width: 820px){ .trendGrid{ grid-template-columns: 1fr; } }
+      .trendBox{ border:1px solid var(--stroke); background:rgba(255,255,255,.04); border-radius:14px; padding:10px; }
+      .trendTitle{ font-weight:900; font-size:12px; color:var(--muted); margin-bottom:8px; }
+      .sparkWrap{ height:70px; display:flex; align-items:flex-end; gap:4px; }
+      .sparkBar{ flex:1; border-radius:8px; background:rgba(90,169,255,.55); border:1px solid rgba(255,255,255,.08); }
+      .deltaGrid{ display:grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap:10px; margin:10px 0; }
+      @media (max-width: 820px){ .deltaGrid{ grid-template-columns: 1fr; } }
+      .deltaItem{ border:1px solid var(--stroke); background:rgba(0,0,0,.25); border-radius:14px; padding:10px; }
+      .deltaLabel{ color:var(--muted); font-size:12px; font-weight:900; }
+      .delta{ font-weight:900; font-size:14px; margin-top:4px; }
+      .delta.up{ color:var(--ok); }
+      .delta.down{ color:var(--bad); }
+      .delta.flat{ color:var(--muted); }
       @media (max-width: 820px){ .split3{ grid-template-columns: 1fr; } }
       #toast{ position:fixed; left:50%; bottom:18px; transform:translateX(-50%); background:rgba(0,0,0,.72); border:1px solid rgba(255,255,255,.20); padding:10px 14px; border-radius:14px; opacity:0; pointer-events:none; transition:opacity .18s ease; }
       #toast.show{ opacity:1; }
@@ -816,6 +914,7 @@ function render(){
 
   // ---- Boot ----
   state = loadOrNew();
+  exposeState();
   render();
   registerSW();
 

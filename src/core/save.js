@@ -53,6 +53,12 @@
       governabilidade: 50,
       reputacao_no_plenario: 50,
 
+
+      // coalizão (evita crash em sim.js)
+      coalizao: {
+        forca: 50,
+        aliancas: []
+      },
       // opiniões por grupo
       opiniao: {
         geral: 50,
@@ -219,4 +225,4 @@
     KEY,
     SAVE_VERSION
   };
-})();
+})();test

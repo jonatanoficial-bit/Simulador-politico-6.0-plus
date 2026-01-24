@@ -85,6 +85,13 @@
 
   function ensurePersonagem(state){
     if (!state.personagem) state.personagem = { nome:"Novo Político", partidoId:"centro", ideologia:0, tracos:{ honestidade:50, carisma:50, competencia:50 } };
+
+    // Garantir coalizão (evita crash no Avançar Mês)
+    if (!state.coalizao || typeof state.coalizao !== "object"){
+      state.coalizao = { forca: clamp(state.governabilidade ?? 50, 0, 100), aliancas: [] };
+    }
+    if (typeof state.coalizao.forca !== "number") state.coalizao.forca = clamp(state.governabilidade ?? 50, 0, 100);
+    if (!Array.isArray(state.coalizao.aliancas)) state.coalizao.aliancas = [];
     if (!state.personagem.tracos) state.personagem.tracos = { honestidade:50, carisma:50, competencia:50 };
     if (typeof state.personagem.ideologia !== "number") state.personagem.ideologia = 0;
     if (typeof state.personagem.partidoId !== "string") state.personagem.partidoId = "centro";

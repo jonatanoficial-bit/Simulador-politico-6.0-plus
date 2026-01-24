@@ -65,7 +65,8 @@ body::after{
   background-size: cover;
   background-position: center;
   filter: saturate(1.05) contrast(1.06);
-  opacity: 0.26; /* base */
+  opacity: var(--bg-opacity, 0.26); /* base */
+  transition: opacity .45s ease;
   transform: scale(1.02);
   pointer-events: none;
 }

@@ -19,7 +19,7 @@
     if (casa.includes("assembly") || casa.includes("assembleia")) return 'url("/assets/assembly.png")';
 
     // padrão municipal
-    return 'url("/assets/municipal.png")';
+    return 'url("assets/municipal.png")';
   }
 
   function apply(){

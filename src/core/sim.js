@@ -161,6 +161,7 @@
     // Tutorial passo 1/5 (se estiver ativo)
     avancarTutorialSe(state, state.tutorial?.passo === 0);
 
+    recordHistory(state, beforeSnap);
     return state;
   }
 
@@ -298,6 +299,7 @@
     state.logs.push(mkLog(`Ação do mês: ${acao.nome}. (${state.acoesDoMes.usadas}/${state.acoesDoMes.limite})`));
 
     // Tutorial: ação do mês não é um passo do tutorial atual, mas pode ser usado depois
+    recordHistory(state, beforeSnap);
     return state;
   }
 
@@ -364,6 +366,7 @@
     if (perfilId === "seguranca") aplicarImpactoGrupos(state, { conservadores:+2, progressistas:-1, pobres:-1 });
     if (perfilId === "equilibrio") aplicarImpactoGrupos(state, { classe_media:+1 });
 
+    recordHistory(state, beforeSnap);
     return state;
   }
 
@@ -423,6 +426,7 @@
     state.integridade.risco = clamp(state.integridade.risco - 1, 0, 100);
 
     state.logs.push(mkLog(`Nomeado(a) para ${slot.toUpperCase()}: ${t.nome}. (-R$ ${custo})`));
+    recordHistory(state, beforeSnap);
     return state;
   }
 
@@ -469,6 +473,7 @@
     }
 
     state.logs.push(mkLog(`Política implementada: ${p.nome}. (-R$ ${custo})`));
+    recordHistory(state, beforeSnap);
     return state;
   }
 
@@ -618,6 +623,7 @@
     }
 
     state.leisPendentes.splice(leiIdx, 1);
+    recordHistory(state, beforeSnap);
     return state;
   }
 
@@ -646,6 +652,7 @@
     ensureIntegridade(state);
     state.integridade.risco = clamp(state.integridade.risco + 1, 0, 100);
 
+    recordHistory(state, beforeSnap);
     return state;
   }
 
@@ -687,6 +694,7 @@
       state.integridade.nivel = clamp(state.integridade.nivel + 1, 0, 100);
       state.integridade.risco = clamp(state.integridade.risco - 1, 0, 100);
     }
+    recordHistory(state, beforeSnap);
     return state;
   }
 
@@ -702,6 +710,7 @@
     ensureIntegridade(state);
     state.integridade.risco = clamp(state.integridade.risco + 1, 0, 100);
 
+    recordHistory(state, beforeSnap);
     return state;
   }
 
@@ -746,6 +755,7 @@
     state.logs.push(mkLog(`Negociou apoio (${pacote}). Governabilidade +${t.gov}, Reputação +${t.rep}.`));
 
     avancarTutorialSe(state, state.tutorial?.passo === 3);
+    recordHistory(state, beforeSnap);
     return state;
   }
 
@@ -790,6 +800,7 @@
     state.cadeiaEventos = null;
 
     avancarTutorialSe(state, state.tutorial?.passo === 4);
+    recordHistory(state, beforeSnap);
     return state;
   }
 
@@ -810,6 +821,7 @@
       state.eventoAtual = ev;
       state.logs.push(mkLog(`Evento (tutorial): ${ev.nome || ev.id}`));
     }
+    recordHistory(state, beforeSnap);
     return state;
   }
 
@@ -839,6 +851,7 @@
     const alvo = getCargo(data, cargoAlvoId);
     state.logs.push(mkLog(`Você decidiu disputar: ${alvo ? alvo.nome : cargoAlvoId}.`));
     state.logs.push(mkLog("Escolha a intensidade da campanha."));
+    recordHistory(state, beforeSnap);
     return state;
   }
 
@@ -882,6 +895,7 @@
     aplicarImpactoGrupos(state, c.grupos);
 
     state.logs.push(mkLog(`Campanha ${tipo.toUpperCase()} realizada. (-R$ ${c.custo})`));
+    recordHistory(state, beforeSnap);
     return state;
   }
 
@@ -984,6 +998,7 @@
 
     state.emEleicao = false;
     state.eleicao = null;
+    recordHistory(state, beforeSnap);
     return state;
   }
 
@@ -1187,6 +1202,55 @@
     }
   }
 
+
+  function snapshotKPIs(state){
+    const pop = clamp(state.opiniao?.geral ?? state.popularidade ?? 50, 0, 100);
+    const gov = clamp(state.governabilidade ?? 50, 0, 100);
+    const rep = clamp(state.reputacao_no_plenario ?? 50, 0, 100);
+    const rec = Number(state.recursos ?? 0);
+    const integ = clamp(state.integridade?.nivel ?? 50, 0, 100);
+    const risco = clamp(state.integridade?.risco ?? 20, 0, 100);
+    return {
+      ano: state.ano, mes: state.mes, turno: state.turno,
+      pop, gov, rep, rec, integ, risco
+    };
+  }
+
+  function ensureHistory(state){
+    if (!Array.isArray(state.history)) state.history = [];
+    if (state.history.length === 0){
+      state.history.push(snapshotKPIs(state));
+    }
+  }
+
+  function recordHistory(state, beforeSnap){
+    ensureHistory(state);
+    const afterSnap = snapshotKPIs(state);
+    const last = state.history[state.history.length - 1];
+
+    // Evita duplicar o mesmo mês/turno
+    if (last && last.ano === afterSnap.ano && last.mes === afterSnap.mes && last.turno === afterSnap.turno){
+      state.history[state.history.length - 1] = afterSnap;
+    } else {
+      state.history.push(afterSnap);
+      // mantém histórico enxuto (2 anos)
+      if (state.history.length > 24) state.history = state.history.slice(-24);
+    }
+
+    // Deltas para UI (último mês)
+    const b = beforeSnap || last || afterSnap;
+    state.lastDelta = {
+      pop: Math.round(afterSnap.pop - (b.pop ?? afterSnap.pop)),
+      gov: Math.round(afterSnap.gov - (b.gov ?? afterSnap.gov)),
+      rep: Math.round(afterSnap.rep - (b.rep ?? afterSnap.rep)),
+      rec: Math.round(afterSnap.rec - (b.rec ?? afterSnap.rec)),
+      integ: Math.round(afterSnap.integ - (b.integ ?? afterSnap.integ)),
+      risco: Math.round(afterSnap.risco - (b.risco ?? afterSnap.risco)),
+      from: { ano: b.ano, mes: b.mes },
+      to: { ano: afterSnap.ano, mes: afterSnap.mes }
+    };
+  }
+
   // ========= LOOP PRINCIPAL =========
 
   function nextTurn(state, data){
@@ -1206,6 +1270,9 @@
     ensureAcoesDoMes(state);
     ensureMidia(state);
     ensureIntegridade(state);
+
+    ensureHistory(state);
+    const beforeSnap = snapshotKPIs(state);
 
     const prevPop = clamp(state.opiniao?.geral ?? state.popularidade ?? 50, 0, 100);
 
@@ -1289,6 +1356,7 @@
       state.logs.push(mkLog("Novos projetos chegaram à pauta."));
     }
 
+    recordHistory(state, beforeSnap);
     return state;
   }
 
@@ -1310,6 +1378,8 @@
     ensureAcoesDoMes(base);
     ensureMidia(base);
     ensureIntegridade(base);
+
+    ensureHistory(base);
 
     // tutorial passo 1/5 aparece
     const msg = tutorialText(base);

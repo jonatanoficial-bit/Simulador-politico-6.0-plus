@@ -2,15 +2,15 @@
   "name": "Simulador Político",
   "short_name": "SimPol",
   "description": "Simulador político de alta fidelidade: carreira de vereador até presidente, decisões realistas, mídia e crises.",
-  "start_url": "/",
-  "scope": "/",
+  "start_url": "./",
+  "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#0b0f14",
   "theme_color": "#0b0f14",
   "icons": [
     {
-      "src": "/favicon.svg",
+      "src": "favicon.svg",
       "sizes": "any",
       "type": "image/svg+xml",
       "purpose": "any maskable"

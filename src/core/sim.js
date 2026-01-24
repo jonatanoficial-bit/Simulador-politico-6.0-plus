@@ -25,8 +25,9 @@
     return (data.cargos || []).find(c => c.id === cargoId) || null;
   }
 
+  // Compat: alguns builds antigos usam "deputado" em vez de "deputado_federal"
   function isLegislador(cargoId){
-    return cargoId === "vereador" || cargoId === "deputado_federal" || cargoId === "senador";
+    return cargoId === "vereador" || cargoId === "deputado" || cargoId === "deputado_federal" || cargoId === "senador";
   }
   function isExecutivo(cargoId){
     return cargoId === "prefeito" || cargoId === "governador" || cargoId === "presidente";
@@ -34,6 +35,7 @@
 
   function getCasaPorCargo(cargoId){
     if (cargoId === "vereador") return "camara_municipal";
+    if (cargoId === "deputado") return "camara_federal";
     if (cargoId === "deputado_federal") return "camara_federal";
     if (cargoId === "senador") return "senado";
     return "executivo";
@@ -557,10 +559,11 @@
     }
 
     const casaId = state.casaAtualId;
-    const regras = getRegrasCasa(data, casaId);
+    let regras = getRegrasCasa(data, casaId);
     if (!regras){
-      state.logs.push(mkLog("Regras da casa não encontradas."));
-      return state;
+      // Fallback: evita travar UI/tutoriais se data.js estiver incompleto
+      state.logs.push(mkLog("Regras da casa não encontradas (fallback)."));
+      regras = { quorum: 0.5, maioria: "simples" };
     }
 
     const leiIdx = state.leisPendentes.findIndex(l => l.id === leiId);
@@ -570,7 +573,12 @@
     }
 
     const lei = state.leisPendentes[leiIdx];
-    const membros = getMembrosCasa(data, casaId);
+    let membros = getMembrosCasa(data, casaId);
+
+    if (!Array.isArray(membros) || membros.length === 0){
+      // Fallback: casa sem NPCs — cria uma bancada genérica
+      membros = Array.from({length: 20}).map((_,i)=>({ id: `${casaId}_m${i+1}`, casaId, lealdade: 50 }));
+    }
 
     let votosSim = 1;
     let votosNao = 0;

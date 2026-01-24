@@ -1,0 +1,667 @@
+[
+  {
+    "id": "camara_municipal_1",
+    "casaId": "camara_municipal",
+    "partidoId": "progressista",
+    "ideologia": 44,
+    "lealdade": 70
+  },
+  {
+    "id": "camara_municipal_2",
+    "casaId": "camara_municipal",
+    "partidoId": "direita",
+    "ideologia": 9,
+    "lealdade": 79
+  },
+  {
+    "id": "camara_municipal_3",
+    "casaId": "camara_municipal",
+    "partidoId": "progressista",
+    "ideologia": -2,
+    "lealdade": 36
+  },
+  {
+    "id": "camara_municipal_4",
+    "casaId": "camara_municipal",
+    "partidoId": "conservador",
+    "ideologia": -7,
+    "lealdade": 56
+  },
+  {
+    "id": "camara_municipal_5",
+    "casaId": "camara_municipal",
+    "partidoId": "direita",
+    "ideologia": 5,
+    "lealdade": 75
+  },
+  {
+    "id": "camara_municipal_6",
+    "casaId": "camara_municipal",
+    "partidoId": "conservador",
+    "ideologia": 16,
+    "lealdade": 75
+  },
+  {
+    "id": "camara_municipal_7",
+    "casaId": "camara_municipal",
+    "partidoId": "conservador",
+    "ideologia": -33,
+    "lealdade": 62
+  },
+  {
+    "id": "camara_municipal_8",
+    "casaId": "camara_municipal",
+    "partidoId": "esquerda",
+    "ideologia": 1,
+    "lealdade": 53
+  },
+  {
+    "id": "camara_municipal_9",
+    "casaId": "camara_municipal",
+    "partidoId": "direita",
+    "ideologia": -10,
+    "lealdade": 42
+  },
+  {
+    "id": "camara_municipal_10",
+    "casaId": "camara_municipal",
+    "partidoId": "direita",
+    "ideologia": 12,
+    "lealdade": 79
+  },
+  {
+    "id": "camara_municipal_11",
+    "casaId": "camara_municipal",
+    "partidoId": "centro",
+    "ideologia": 13,
+    "lealdade": 58
+  },
+  {
+    "id": "camara_municipal_12",
+    "casaId": "camara_municipal",
+    "partidoId": "esquerda",
+    "ideologia": -50,
+    "lealdade": 38
+  },
+  {
+    "id": "camara_municipal_13",
+    "casaId": "camara_municipal",
+    "partidoId": "progressista",
+    "ideologia": -17,
+    "lealdade": 56
+  },
+  {
+    "id": "camara_municipal_14",
+    "casaId": "camara_municipal",
+    "partidoId": "liberal",
+    "ideologia": 25,
+    "lealdade": 60
+  },
+  {
+    "id": "camara_municipal_15",
+    "casaId": "camara_municipal",
+    "partidoId": "progressista",
+    "ideologia": -51,
+    "lealdade": 34
+  },
+  {
+    "id": "camara_municipal_16",
+    "casaId": "camara_municipal",
+    "partidoId": "conservador",
+    "ideologia": 4,
+    "lealdade": 60
+  },
+  {
+    "id": "camara_municipal_17",
+    "casaId": "camara_municipal",
+    "partidoId": "progressista",
+    "ideologia": 4,
+    "lealdade": 67
+  },
+  {
+    "id": "camara_municipal_18",
+    "casaId": "camara_municipal",
+    "partidoId": "centro",
+    "ideologia": 43,
+    "lealdade": 31
+  },
+  {
+    "id": "camara_municipal_19",
+    "casaId": "camara_municipal",
+    "partidoId": "liberal",
+    "ideologia": -8,
+    "lealdade": 75
+  },
+  {
+    "id": "camara_municipal_20",
+    "casaId": "camara_municipal",
+    "partidoId": "esquerda",
+    "ideologia": 17,
+    "lealdade": 66
+  },
+  {
+    "id": "camara_municipal_21",
+    "casaId": "camara_municipal",
+    "partidoId": "progressista",
+    "ideologia": -8,
+    "lealdade": 90
+  },
+  {
+    "id": "camara_municipal_22",
+    "casaId": "camara_municipal",
+    "partidoId": "progressista",
+    "ideologia": 44,
+    "lealdade": 64
+  },
+  {
+    "id": "camara_municipal_23",
+    "casaId": "camara_municipal",
+    "partidoId": "conservador",
+    "ideologia": -2,
+    "lealdade": 46
+  },
+  {
+    "id": "camara_municipal_24",
+    "casaId": "camara_municipal",
+    "partidoId": "liberal",
+    "ideologia": -9,
+    "lealdade": 88
+  },
+  {
+    "id": "camara_municipal_25",
+    "casaId": "camara_municipal",
+    "partidoId": "progressista",
+    "ideologia": -49,
+    "lealdade": 47
+  },
+  {
+    "id": "camara_federal_1",
+    "casaId": "camara_federal",
+    "partidoId": "centro",
+    "ideologia": 1,
+    "lealdade": 58
+  },
+  {
+    "id": "camara_federal_2",
+    "casaId": "camara_federal",
+    "partidoId": "esquerda",
+    "ideologia": -10,
+    "lealdade": 58
+  },
+  {
+    "id": "camara_federal_3",
+    "casaId": "camara_federal",
+    "partidoId": "conservador",
+    "ideologia": 21,
+    "lealdade": 45
+  },
+  {
+    "id": "camara_federal_4",
+    "casaId": "camara_federal",
+    "partidoId": "progressista",
+    "ideologia": -72,
+    "lealdade": 55
+  },
+  {
+    "id": "camara_federal_5",
+    "casaId": "camara_federal",
+    "partidoId": "progressista",
+    "ideologia": -26,
+    "lealdade": 58
+  },
+  {
+    "id": "camara_federal_6",
+    "casaId": "camara_federal",
+    "partidoId": "direita",
+    "ideologia": -1,
+    "lealdade": 36
+  },
+  {
+    "id": "camara_federal_7",
+    "casaId": "camara_federal",
+    "partidoId": "progressista",
+    "ideologia": -64,
+    "lealdade": 38
+  },
+  {
+    "id": "camara_federal_8",
+    "casaId": "camara_federal",
+    "partidoId": "liberal",
+    "ideologia": -77,
+    "lealdade": 90
+  },
+  {
+    "id": "camara_federal_9",
+    "casaId": "camara_federal",
+    "partidoId": "direita",
+    "ideologia": -15,
+    "lealdade": 54
+  },
+  {
+    "id": "camara_federal_10",
+    "casaId": "camara_federal",
+    "partidoId": "centro",
+    "ideologia": 12,
+    "lealdade": 48
+  },
+  {
+    "id": "camara_federal_11",
+    "casaId": "camara_federal",
+    "partidoId": "direita",
+    "ideologia": 9,
+    "lealdade": 39
+  },
+  {
+    "id": "camara_federal_12",
+    "casaId": "camara_federal",
+    "partidoId": "centro",
+    "ideologia": -35,
+    "lealdade": 68
+  },
+  {
+    "id": "camara_federal_13",
+    "casaId": "camara_federal",
+    "partidoId": "liberal",
+    "ideologia": -91,
+    "lealdade": 47
+  },
+  {
+    "id": "camara_federal_14",
+    "casaId": "camara_federal",
+    "partidoId": "centro",
+    "ideologia": -7,
+    "lealdade": 48
+  },
+  {
+    "id": "camara_federal_15",
+    "casaId": "camara_federal",
+    "partidoId": "conservador",
+    "ideologia": 0,
+    "lealdade": 29
+  },
+  {
+    "id": "camara_federal_16",
+    "casaId": "camara_federal",
+    "partidoId": "esquerda",
+    "ideologia": 28,
+    "lealdade": 65
+  },
+  {
+    "id": "camara_federal_17",
+    "casaId": "camara_federal",
+    "partidoId": "liberal",
+    "ideologia": 55,
+    "lealdade": 55
+  },
+  {
+    "id": "camara_federal_18",
+    "casaId": "camara_federal",
+    "partidoId": "progressista",
+    "ideologia": -3,
+    "lealdade": 72
+  },
+  {
+    "id": "camara_federal_19",
+    "casaId": "camara_federal",
+    "partidoId": "direita",
+    "ideologia": -16,
+    "lealdade": 54
+  },
+  {
+    "id": "camara_federal_20",
+    "casaId": "camara_federal",
+    "partidoId": "progressista",
+    "ideologia": -14,
+    "lealdade": 75
+  },
+  {
+    "id": "camara_federal_21",
+    "casaId": "camara_federal",
+    "partidoId": "conservador",
+    "ideologia": 10,
+    "lealdade": 68
+  },
+  {
+    "id": "camara_federal_22",
+    "casaId": "camara_federal",
+    "partidoId": "direita",
+    "ideologia": -58,
+    "lealdade": 48
+  },
+  {
+    "id": "camara_federal_23",
+    "casaId": "camara_federal",
+    "partidoId": "conservador",
+    "ideologia": 41,
+    "lealdade": 45
+  },
+  {
+    "id": "camara_federal_24",
+    "casaId": "camara_federal",
+    "partidoId": "liberal",
+    "ideologia": 79,
+    "lealdade": 59
+  },
+  {
+    "id": "camara_federal_25",
+    "casaId": "camara_federal",
+    "partidoId": "esquerda",
+    "ideologia": 1,
+    "lealdade": 66
+  },
+  {
+    "id": "camara_federal_26",
+    "casaId": "camara_federal",
+    "partidoId": "conservador",
+    "ideologia": 13,
+    "lealdade": 52
+  },
+  {
+    "id": "camara_federal_27",
+    "casaId": "camara_federal",
+    "partidoId": "liberal",
+    "ideologia": 38,
+    "lealdade": 20
+  },
+  {
+    "id": "camara_federal_28",
+    "casaId": "camara_federal",
+    "partidoId": "conservador",
+    "ideologia": 1,
+    "lealdade": 47
+  },
+  {
+    "id": "camara_federal_29",
+    "casaId": "camara_federal",
+    "partidoId": "liberal",
+    "ideologia": 19,
+    "lealdade": 52
+  },
+  {
+    "id": "camara_federal_30",
+    "casaId": "camara_federal",
+    "partidoId": "conservador",
+    "ideologia": 25,
+    "lealdade": 43
+  },
+  {
+    "id": "camara_federal_31",
+    "casaId": "camara_federal",
+    "partidoId": "direita",
+    "ideologia": 52,
+    "lealdade": 44
+  },
+  {
+    "id": "camara_federal_32",
+    "casaId": "camara_federal",
+    "partidoId": "progressista",
+    "ideologia": 9,
+    "lealdade": 67
+  },
+  {
+    "id": "camara_federal_33",
+    "casaId": "camara_federal",
+    "partidoId": "progressista",
+    "ideologia": -22,
+    "lealdade": 41
+  },
+  {
+    "id": "camara_federal_34",
+    "casaId": "camara_federal",
+    "partidoId": "conservador",
+    "ideologia": -25,
+    "lealdade": 58
+  },
+  {
+    "id": "camara_federal_35",
+    "casaId": "camara_federal",
+    "partidoId": "centro",
+    "ideologia": -24,
+    "lealdade": 72
+  },
+  {
+    "id": "camara_federal_36",
+    "casaId": "camara_federal",
+    "partidoId": "direita",
+    "ideologia": -3,
+    "lealdade": 54
+  },
+  {
+    "id": "camara_federal_37",
+    "casaId": "camara_federal",
+    "partidoId": "progressista",
+    "ideologia": -17,
+    "lealdade": 47
+  },
+  {
+    "id": "camara_federal_38",
+    "casaId": "camara_federal",
+    "partidoId": "centro",
+    "ideologia": 8,
+    "lealdade": 50
+  },
+  {
+    "id": "camara_federal_39",
+    "casaId": "camara_federal",
+    "partidoId": "direita",
+    "ideologia": -7,
+    "lealdade": 72
+  },
+  {
+    "id": "camara_federal_40",
+    "casaId": "camara_federal",
+    "partidoId": "conservador",
+    "ideologia": 55,
+    "lealdade": 80
+  },
+  {
+    "id": "camara_federal_41",
+    "casaId": "camara_federal",
+    "partidoId": "conservador",
+    "ideologia": -23,
+    "lealdade": 49
+  },
+  {
+    "id": "camara_federal_42",
+    "casaId": "camara_federal",
+    "partidoId": "liberal",
+    "ideologia": 8,
+    "lealdade": 45
+  },
+  {
+    "id": "camara_federal_43",
+    "casaId": "camara_federal",
+    "partidoId": "centro",
+    "ideologia": -17,
+    "lealdade": 43
+  },
+  {
+    "id": "camara_federal_44",
+    "casaId": "camara_federal",
+    "partidoId": "liberal",
+    "ideologia": -55,
+    "lealdade": 59
+  },
+  {
+    "id": "camara_federal_45",
+    "casaId": "camara_federal",
+    "partidoId": "progressista",
+    "ideologia": -28,
+    "lealdade": 37
+  },
+  {
+    "id": "senado_1",
+    "casaId": "senado",
+    "partidoId": "centro",
+    "ideologia": -26,
+    "lealdade": 62
+  },
+  {
+    "id": "senado_2",
+    "casaId": "senado",
+    "partidoId": "centro",
+    "ideologia": 0,
+    "lealdade": 64
+  },
+  {
+    "id": "senado_3",
+    "casaId": "senado",
+    "partidoId": "liberal",
+    "ideologia": 14,
+    "lealdade": 62
+  },
+  {
+    "id": "senado_4",
+    "casaId": "senado",
+    "partidoId": "liberal",
+    "ideologia": 0,
+    "lealdade": 88
+  },
+  {
+    "id": "senado_5",
+    "casaId": "senado",
+    "partidoId": "liberal",
+    "ideologia": 24,
+    "lealdade": 27
+  },
+  {
+    "id": "senado_6",
+    "casaId": "senado",
+    "partidoId": "centro",
+    "ideologia": 100,
+    "lealdade": 72
+  },
+  {
+    "id": "senado_7",
+    "casaId": "senado",
+    "partidoId": "centro",
+    "ideologia": 78,
+    "lealdade": 48
+  },
+  {
+    "id": "senado_8",
+    "casaId": "senado",
+    "partidoId": "direita",
+    "ideologia": 20,
+    "lealdade": 69
+  },
+  {
+    "id": "senado_9",
+    "casaId": "senado",
+    "partidoId": "direita",
+    "ideologia": 49,
+    "lealdade": 30
+  },
+  {
+    "id": "senado_10",
+    "casaId": "senado",
+    "partidoId": "direita",
+    "ideologia": -73,
+    "lealdade": 85
+  },
+  {
+    "id": "senado_11",
+    "casaId": "senado",
+    "partidoId": "esquerda",
+    "ideologia": 54,
+    "lealdade": 43
+  },
+  {
+    "id": "senado_12",
+    "casaId": "senado",
+    "partidoId": "esquerda",
+    "ideologia": -77,
+    "lealdade": 72
+  },
+  {
+    "id": "senado_13",
+    "casaId": "senado",
+    "partidoId": "conservador",
+    "ideologia": -21,
+    "lealdade": 40
+  },
+  {
+    "id": "senado_14",
+    "casaId": "senado",
+    "partidoId": "direita",
+    "ideologia": -26,
+    "lealdade": 90
+  },
+  {
+    "id": "senado_15",
+    "casaId": "senado",
+    "partidoId": "conservador",
+    "ideologia": -1,
+    "lealdade": 49
+  },
+  {
+    "id": "senado_16",
+    "casaId": "senado",
+    "partidoId": "esquerda",
+    "ideologia": 43,
+    "lealdade": 61
+  },
+  {
+    "id": "senado_17",
+    "casaId": "senado",
+    "partidoId": "conservador",
+    "ideologia": 37,
+    "lealdade": 46
+  },
+  {
+    "id": "senado_18",
+    "casaId": "senado",
+    "partidoId": "centro",
+    "ideologia": 13,
+    "lealdade": 53
+  },
+  {
+    "id": "senado_19",
+    "casaId": "senado",
+    "partidoId": "direita",
+    "ideologia": 11,
+    "lealdade": 57
+  },
+  {
+    "id": "senado_20",
+    "casaId": "senado",
+    "partidoId": "direita",
+    "ideologia": -68,
+    "lealdade": 75
+  },
+  {
+    "id": "senado_21",
+    "casaId": "senado",
+    "partidoId": "conservador",
+    "ideologia": 1,
+    "lealdade": 75
+  },
+  {
+    "id": "senado_22",
+    "casaId": "senado",
+    "partidoId": "conservador",
+    "ideologia": 44,
+    "lealdade": 65
+  },
+  {
+    "id": "senado_23",
+    "casaId": "senado",
+    "partidoId": "conservador",
+    "ideologia": -80,
+    "lealdade": 50
+  },
+  {
+    "id": "senado_24",
+    "casaId": "senado",
+    "partidoId": "direita",
+    "ideologia": -14,
+    "lealdade": 43
+  },
+  {
+    "id": "senado_25",
+    "casaId": "senado",
+    "partidoId": "esquerda",
+    "ideologia": -41,
+    "lealdade": 68
+  }
+]

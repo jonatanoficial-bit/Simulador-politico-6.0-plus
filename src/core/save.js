@@ -139,6 +139,7 @@
 
       // eventos / eleições
       eventoAtual: null,
+      mesesSemEvento: 0,
       emEleicao: false,
       eleicao: null,
 

@@ -5,9 +5,132 @@
     "tipo": "crise",
     "descricao": "Alagamentos atingem bairros vulneráveis. A imprensa cobra resposta imediata.",
     "opcoes": [
-      { "id": "ajuda_imediata", "texto": "Liberar ajuda emergencial e abrigos", "impactos": { "popularidade": 3, "recursos": -300 } },
-      { "id": "plano_preventivo", "texto": "Anunciar plano de drenagem e iniciar licitação", "impactos": { "popularidade": 1, "recursos": -200 } },
-      { "id": "minimizar", "texto": "Minimizar publicamente e aguardar", "impactos": { "popularidade": -4, "recursos": 0 } }
+      {
+        "id": "ajuda_imediata",
+        "texto": "Liberar ajuda emergencial e abrigos",
+        "impactos": {
+          "recursos": -300,
+          "grupos": {
+            "pobres": 4,
+            "classe_media": 1
+          },
+          "integridadeRisco": 1
+        }
+      },
+      {
+        "id": "plano_preventivo",
+        "texto": "Anunciar plano de drenagem e iniciar licitação",
+        "impactos": {
+          "recursos": -220,
+          "grupos": {
+            "pobres": 2,
+            "empresarios": 1
+          },
+          "integridadeRisco": 2
+        },
+        "proximoEventoId": "licitacao_drenagem"
+      },
+      {
+        "id": "minimizar",
+        "texto": "Minimizar publicamente e aguardar",
+        "impactos": {
+          "grupos": {
+            "pobres": -5,
+            "classe_media": -2
+          },
+          "integridadeNivel": -1
+        }
+      }
+    ]
+  },
+  {
+    "id": "licitacao_drenagem",
+    "nome": "Licitação de Drenagem",
+    "tipo": "gestao",
+    "descricao": "A licitação de obras vira disputa política. Há suspeitas de direcionamento.",
+    "opcoes": [
+      {
+        "id": "pregao_transparente",
+        "texto": "Fazer pregão transparente e publicar tudo",
+        "impactos": {
+          "recursos": -180,
+          "grupos": {
+            "progressistas": 2,
+            "classe_media": 1
+          },
+          "integridadeNivel": 2,
+          "integridadeRisco": -2
+        }
+      },
+      {
+        "id": "acordo_bastidores",
+        "texto": "Fechar acordo com empreiteiras para acelerar",
+        "impactos": {
+          "recursos": -150,
+          "grupos": {
+            "empresarios": 3,
+            "conservadores": 1
+          },
+          "integridadeNivel": -3,
+          "integridadeRisco": 6
+        },
+        "proximoEventoId": "denuncia_obra"
+      },
+      {
+        "id": "adiar",
+        "texto": "Adiar para evitar desgaste",
+        "impactos": {
+          "grupos": {
+            "pobres": -2,
+            "classe_media": -1
+          },
+          "integridadeRisco": -1
+        }
+      }
+    ]
+  },
+  {
+    "id": "denuncia_obra",
+    "nome": "Denúncia sobre Obras",
+    "tipo": "escandalo",
+    "descricao": "Jornal local publica suposto esquema de obras. O assunto domina as redes.",
+    "opcoes": [
+      {
+        "id": "abrir_sindicancia",
+        "texto": "Abrir sindicância e suspender contrato",
+        "impactos": {
+          "recursos": -80,
+          "grupos": {
+            "geral": 2
+          },
+          "integridadeNivel": 3,
+          "integridadeRisco": -3
+        }
+      },
+      {
+        "id": "defender_contrato",
+        "texto": "Defender contrato e atacar denúncias",
+        "impactos": {
+          "grupos": {
+            "classe_media": -3,
+            "progressistas": -2
+          },
+          "integridadeNivel": -2,
+          "integridadeRisco": 3
+        }
+      },
+      {
+        "id": "trocar_secretario",
+        "texto": "Trocar secretário e prometer correções",
+        "impactos": {
+          "grupos": {
+            "servidores": -1,
+            "classe_media": 1
+          },
+          "integridadeNivel": 1,
+          "integridadeRisco": 1
+        }
+      }
     ]
   },
   {
@@ -16,9 +139,41 @@
     "tipo": "escandalo",
     "descricao": "Surge denúncia de favorecimento em contratos. Você precisa reagir.",
     "opcoes": [
-      { "id": "investigar", "texto": "Abrir investigação interna e afastar suspeitos", "impactos": { "popularidade": 2, "recursos": -100 } },
-      { "id": "negar", "texto": "Negar e atacar a imprensa", "impactos": { "popularidade": -3, "recursos": 0 } },
-      { "id": "silencio", "texto": "Não comentar", "impactos": { "popularidade": -2, "recursos": 0 } }
+      {
+        "id": "investigar",
+        "texto": "Abrir investigação interna e afastar suspeitos",
+        "impactos": {
+          "recursos": -100,
+          "grupos": {
+            "classe_media": 2,
+            "progressistas": 1
+          },
+          "integridadeNivel": 2,
+          "integridadeRisco": -2
+        }
+      },
+      {
+        "id": "negar",
+        "texto": "Negar e atacar a imprensa",
+        "impactos": {
+          "grupos": {
+            "classe_media": -3,
+            "progressistas": -2
+          },
+          "integridadeNivel": -2,
+          "integridadeRisco": 2
+        }
+      },
+      {
+        "id": "silencio",
+        "texto": "Não comentar",
+        "impactos": {
+          "grupos": {
+            "classe_media": -2
+          },
+          "integridadeRisco": 1
+        }
+      }
     ]
   },
   {
@@ -27,9 +182,865 @@
     "tipo": "pressao_social",
     "descricao": "Um protesto cresce nas redes e vai às ruas. Há risco de escalada.",
     "opcoes": [
-      { "id": "dialogo", "texto": "Chamar lideranças para diálogo público", "impactos": { "popularidade": 1, "recursos": -50 } },
-      { "id": "repressao", "texto": "Reforçar policiamento e restringir", "impactos": { "popularidade": -3, "recursos": -50 } },
-      { "id": "ignorar", "texto": "Ignorar (seguir agenda)", "impactos": { "popularidade": -2, "recursos": 0 } }
+      {
+        "id": "dialogo",
+        "texto": "Chamar lideranças para diálogo público",
+        "impactos": {
+          "recursos": -50,
+          "grupos": {
+            "progressistas": 2,
+            "pobres": 1
+          },
+          "integridadeRisco": 1
+        }
+      },
+      {
+        "id": "repressao",
+        "texto": "Reforçar policiamento e restringir",
+        "impactos": {
+          "recursos": -70,
+          "grupos": {
+            "conservadores": 1,
+            "progressistas": -4,
+            "pobres": -2
+          },
+          "integridadeRisco": 3
+        }
+      },
+      {
+        "id": "ignorar",
+        "texto": "Ignorar (seguir agenda)",
+        "impactos": {
+          "grupos": {
+            "classe_media": -2,
+            "pobres": -1
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "greve_servidores",
+    "nome": "Greve de Servidores",
+    "tipo": "pressao_social",
+    "descricao": "Servidores ameaçam parar serviços essenciais por reajuste salarial.",
+    "opcoes": [
+      {
+        "id": "negociar",
+        "texto": "Abrir mesa e oferecer reajuste gradual",
+        "impactos": {
+          "recursos": -160,
+          "grupos": {
+            "servidores": 4,
+            "classe_media": 1
+          },
+          "integridadeRisco": 1
+        },
+        "proximoEventoId": "acordo_greve"
+      },
+      {
+        "id": "linha_dura",
+        "texto": "Cortar ponto e manter posição",
+        "impactos": {
+          "grupos": {
+            "servidores": -6,
+            "pobres": -2
+          },
+          "integridadeRisco": 2
+        }
+      },
+      {
+        "id": "adiar_conversa",
+        "texto": "Adiar negociação e prometer estudo",
+        "impactos": {
+          "grupos": {
+            "servidores": -3
+          },
+          "integridadeRisco": 1
+        }
+      }
+    ]
+  },
+  {
+    "id": "acordo_greve",
+    "nome": "Acordo da Greve",
+    "tipo": "gestao",
+    "descricao": "O acordo precisa ser comunicado e aprovado politicamente.",
+    "opcoes": [
+      {
+        "id": "comunicar_transparente",
+        "texto": "Comunicar números e fontes do reajuste",
+        "impactos": {
+          "grupos": {
+            "classe_media": 2,
+            "servidores": 1
+          },
+          "integridadeNivel": 1
+        }
+      },
+      {
+        "id": "anunciar_sem_detalhes",
+        "texto": "Anunciar sem detalhes para evitar críticas",
+        "impactos": {
+          "grupos": {
+            "classe_media": -2
+          },
+          "integridadeRisco": 1
+        }
+      },
+      {
+        "id": "voltar_atras",
+        "texto": "Voltar atrás no acordo",
+        "impactos": {
+          "grupos": {
+            "servidores": -5,
+            "pobres": -1
+          },
+          "integridadeRisco": 2
+        }
+      }
+    ]
+  },
+  {
+    "id": "alta_criminalidade",
+    "nome": "Alta da Criminalidade",
+    "tipo": "crise",
+    "descricao": "Noticiários destacam aumento de crimes em áreas centrais.",
+    "opcoes": [
+      {
+        "id": "policiamento",
+        "texto": "Aumentar policiamento e operações",
+        "impactos": {
+          "recursos": -120,
+          "grupos": {
+            "conservadores": 3,
+            "classe_media": 2,
+            "progressistas": -2
+          },
+          "integridadeRisco": 1
+        }
+      },
+      {
+        "id": "prevencao",
+        "texto": "Investir em prevenção e iluminação pública",
+        "impactos": {
+          "recursos": -160,
+          "grupos": {
+            "pobres": 2,
+            "classe_media": 1
+          },
+          "integridadeRisco": 2
+        },
+        "proximoEventoId": "contrato_iluminacao"
+      },
+      {
+        "id": "culpar_outros",
+        "texto": "Culpar governo anterior e esperar",
+        "impactos": {
+          "grupos": {
+            "classe_media": -2,
+            "geral": -1
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "contrato_iluminacao",
+    "nome": "Contrato de Iluminação",
+    "tipo": "gestao",
+    "descricao": "Um contrato grande de iluminação pode reduzir crimes, mas chama atenção do TCE.",
+    "opcoes": [
+      {
+        "id": "licitacao_aberta",
+        "texto": "Abrir licitação ampla e auditável",
+        "impactos": {
+          "recursos": -140,
+          "grupos": {
+            "classe_media": 2
+          },
+          "integridadeNivel": 2,
+          "integridadeRisco": -1
+        }
+      },
+      {
+        "id": "dispensa_emergencial",
+        "texto": "Dispensa emergencial para agilizar",
+        "impactos": {
+          "recursos": -120,
+          "grupos": {
+            "classe_media": 1
+          },
+          "integridadeNivel": -2,
+          "integridadeRisco": 4
+        },
+        "proximoEventoId": "tce_apura"
+      },
+      {
+        "id": "fatiar",
+        "texto": "Fatiar contrato em partes menores",
+        "impactos": {
+          "recursos": -130,
+          "grupos": {
+            "empresarios": 1
+          },
+          "integridadeRisco": 2
+        }
+      }
+    ]
+  },
+  {
+    "id": "tce_apura",
+    "nome": "TCE abre apuração",
+    "tipo": "escandalo",
+    "descricao": "Tribunal de Contas abre apuração sobre o contrato.",
+    "opcoes": [
+      {
+        "id": "entregar_documentos",
+        "texto": "Entregar documentos e cooperar",
+        "impactos": {
+          "grupos": {
+            "classe_media": 1
+          },
+          "integridadeNivel": 2,
+          "integridadeRisco": -3
+        }
+      },
+      {
+        "id": "atacar_tce",
+        "texto": "Atacar o TCE publicamente",
+        "impactos": {
+          "grupos": {
+            "conservadores": 1,
+            "classe_media": -3
+          },
+          "integridadeRisco": 2
+        }
+      },
+      {
+        "id": "ajustar_contrato",
+        "texto": "Ajustar contrato e corrigir falhas",
+        "impactos": {
+          "recursos": -40,
+          "grupos": {
+            "classe_media": 1
+          },
+          "integridadeNivel": 1
+        }
+      }
+    ]
+  },
+  {
+    "id": "surto_dengue",
+    "nome": "Surto de Dengue",
+    "tipo": "crise",
+    "descricao": "Hospitais registram aumento de casos de dengue. Cobrança por ação imediata.",
+    "opcoes": [
+      {
+        "id": "mutirao",
+        "texto": "Fazer mutirão de limpeza e fumacê",
+        "impactos": {
+          "recursos": -90,
+          "grupos": {
+            "pobres": 2,
+            "classe_media": 2
+          },
+          "integridadeRisco": 1
+        }
+      },
+      {
+        "id": "campanha_midias",
+        "texto": "Campanha de conscientização e prevenção",
+        "impactos": {
+          "recursos": -40,
+          "grupos": {
+            "classe_media": 1,
+            "progressistas": 1
+          }
+        }
+      },
+      {
+        "id": "negar_gravidade",
+        "texto": "Dizer que é exagero da mídia",
+        "impactos": {
+          "grupos": {
+            "pobres": -2,
+            "classe_media": -3
+          },
+          "integridadeNivel": -1
+        }
+      }
+    ]
+  },
+  {
+    "id": "queda_arrecadacao",
+    "nome": "Queda de Arrecadação",
+    "tipo": "economia",
+    "descricao": "A arrecadação cai e o orçamento fica apertado. Cortes ou aumento de receita?",
+    "opcoes": [
+      {
+        "id": "cortar_gastos",
+        "texto": "Cortar gastos e congelar contratações",
+        "impactos": {
+          "recursos": 120,
+          "grupos": {
+            "servidores": -3,
+            "classe_media": 1
+          },
+          "integridadeNivel": 1
+        }
+      },
+      {
+        "id": "aumentar_taxas",
+        "texto": "Aumentar taxas e fiscalização",
+        "impactos": {
+          "recursos": 180,
+          "grupos": {
+            "empresarios": -3,
+            "ricos": -2,
+            "pobres": -1
+          }
+        }
+      },
+      {
+        "id": "pedir_ajuda",
+        "texto": "Buscar convênios/repasse extraordinário",
+        "impactos": {
+          "recursos": 80,
+          "grupos": {
+            "classe_media": 1
+          },
+          "integridadeRisco": 1
+        }
+      }
+    ]
+  },
+  {
+    "id": "fake_news",
+    "nome": "Onda de Fake News",
+    "tipo": "midia",
+    "descricao": "Boatos atacam sua gestão nas redes sociais.",
+    "opcoes": [
+      {
+        "id": "coletiva",
+        "texto": "Coletiva com dados e transparência",
+        "impactos": {
+          "recursos": -20,
+          "grupos": {
+            "classe_media": 2,
+            "progressistas": 1
+          },
+          "integridadeNivel": 1
+        }
+      },
+      {
+        "id": "processar",
+        "texto": "Processar páginas e influenciadores",
+        "impactos": {
+          "recursos": -60,
+          "grupos": {
+            "conservadores": -2,
+            "progressistas": 1
+          },
+          "integridadeRisco": 1
+        }
+      },
+      {
+        "id": "ignorar",
+        "texto": "Ignorar e seguir agenda",
+        "impactos": {
+          "grupos": {
+            "classe_media": -1
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "investimento_creches",
+    "nome": "Demanda por Creches",
+    "tipo": "social",
+    "descricao": "Famílias cobram mais vagas em creches. O tema domina a Câmara.",
+    "opcoes": [
+      {
+        "id": "construir",
+        "texto": "Construir novas creches",
+        "impactos": {
+          "recursos": -180,
+          "grupos": {
+            "pobres": 3,
+            "classe_media": 2
+          },
+          "integridadeRisco": 2
+        },
+        "proximoEventoId": "obra_creche"
+      },
+      {
+        "id": "convenio",
+        "texto": "Convênio com rede privada (vouchers)",
+        "impactos": {
+          "recursos": -120,
+          "grupos": {
+            "empresarios": 2,
+            "pobres": 1
+          },
+          "integridadeRisco": 1
+        }
+      },
+      {
+        "id": "nao_priorizar",
+        "texto": "Dizer que não é prioridade",
+        "impactos": {
+          "grupos": {
+            "pobres": -3,
+            "classe_media": -2
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "obra_creche",
+    "nome": "Obra de Creche em Atraso",
+    "tipo": "gestao",
+    "descricao": "Obra de creche atrasa e moradores reclamam.",
+    "opcoes": [
+      {
+        "id": "multar",
+        "texto": "Multar empreiteira e cobrar cronograma",
+        "impactos": {
+          "grupos": {
+            "pobres": 2,
+            "classe_media": 1
+          },
+          "integridadeNivel": 1
+        }
+      },
+      {
+        "id": "aditivo",
+        "texto": "Aditivo de contrato para acelerar",
+        "impactos": {
+          "recursos": -70,
+          "grupos": {
+            "empresarios": 1
+          },
+          "integridadeRisco": 3
+        }
+      },
+      {
+        "id": "trocar_empresa",
+        "texto": "Trocar empresa e reiniciar",
+        "impactos": {
+          "recursos": -100,
+          "grupos": {
+            "pobres": 1
+          },
+          "integridadeRisco": 2
+        }
+      }
+    ]
+  },
+  {
+    "id": "pressao_religiosa",
+    "nome": "Pressão Religiosa",
+    "tipo": "politica",
+    "descricao": "Lideranças religiosas pedem apoio a uma pauta moral polêmica.",
+    "opcoes": [
+      {
+        "id": "apoiar",
+        "texto": "Apoiar publicamente a pauta",
+        "impactos": {
+          "grupos": {
+            "religiosos": 4,
+            "conservadores": 3,
+            "progressistas": -4
+          }
+        }
+      },
+      {
+        "id": "neutral",
+        "texto": "Manter neutralidade institucional",
+        "impactos": {
+          "grupos": {
+            "classe_media": 1,
+            "religiosos": -1
+          }
+        }
+      },
+      {
+        "id": "recusar",
+        "texto": "Recusar e defender direitos civis",
+        "impactos": {
+          "grupos": {
+            "progressistas": 3,
+            "religiosos": -3,
+            "conservadores": -2
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "convite_debate_tv",
+    "nome": "Convite para Debate na TV",
+    "tipo": "midia",
+    "descricao": "Uma TV local convida para debate ao vivo sobre sua gestão.",
+    "opcoes": [
+      {
+        "id": "aceitar",
+        "texto": "Aceitar e levar números",
+        "impactos": {
+          "grupos": {
+            "classe_media": 2
+          },
+          "integridadeNivel": 1
+        }
+      },
+      {
+        "id": "recusar",
+        "texto": "Recusar para evitar armadilhas",
+        "impactos": {
+          "grupos": {
+            "classe_media": -2
+          }
+        }
+      },
+      {
+        "id": "enviar_porta_voz",
+        "texto": "Enviar porta-voz",
+        "impactos": {
+          "grupos": {
+            "classe_media": 0,
+            "servidores": 1
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "enchente_bairros",
+    "nome": "Enchente em Bairros",
+    "tipo": "crise",
+    "descricao": "Nova enchente atinge bairros e associações cobram obras estruturais.",
+    "opcoes": [
+      {
+        "id": "plano_estrutural",
+        "texto": "Criar plano estrutural de longo prazo",
+        "impactos": {
+          "recursos": -140,
+          "grupos": {
+            "pobres": 2,
+            "classe_media": 1
+          },
+          "integridadeRisco": 1
+        }
+      },
+      {
+        "id": "acao_imediata",
+        "texto": "Ação imediata com Defesa Civil",
+        "impactos": {
+          "recursos": -90,
+          "grupos": {
+            "pobres": 2
+          },
+          "integridadeRisco": 1
+        }
+      },
+      {
+        "id": "culpar_chuva",
+        "texto": "Culpar a chuva e minimizar",
+        "impactos": {
+          "grupos": {
+            "pobres": -3,
+            "classe_media": -1
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "obra_transporte",
+    "nome": "Crise no Transporte",
+    "tipo": "crise",
+    "descricao": "Greve de ônibus e reclamações sobre tarifas e atrasos.",
+    "opcoes": [
+      {
+        "id": "subsidiar",
+        "texto": "Subsidio temporário para reduzir tarifa",
+        "impactos": {
+          "recursos": -150,
+          "grupos": {
+            "pobres": 3,
+            "classe_media": 1
+          },
+          "integridadeRisco": 1
+        }
+      },
+      {
+        "id": "negociar_empresas",
+        "texto": "Negociar com empresas e sindicato",
+        "impactos": {
+          "recursos": -60,
+          "grupos": {
+            "empresarios": 1,
+            "pobres": 1
+          }
+        }
+      },
+      {
+        "id": "intervencao",
+        "texto": "Intervir e ameaçar rescindir contrato",
+        "impactos": {
+          "grupos": {
+            "empresarios": -2,
+            "conservadores": 1
+          },
+          "integridadeRisco": 2
+        }
+      }
+    ]
+  },
+  {
+    "id": "pressao_empresarial",
+    "nome": "Pressão Empresarial",
+    "tipo": "politica",
+    "descricao": "Empresários exigem desburocratização e incentivos.",
+    "opcoes": [
+      {
+        "id": "reduzir_burocracia",
+        "texto": "Simplificar licenças e processos",
+        "impactos": {
+          "recursos": -30,
+          "grupos": {
+            "empresarios": 3,
+            "classe_media": 1
+          },
+          "integridadeRisco": 1
+        }
+      },
+      {
+        "id": "incentivo_fiscal",
+        "texto": "Criar incentivo fiscal",
+        "impactos": {
+          "recursos": -120,
+          "grupos": {
+            "empresarios": 4,
+            "pobres": -1
+          }
+        }
+      },
+      {
+        "id": "rejeitar",
+        "texto": "Rejeitar e priorizar políticas sociais",
+        "impactos": {
+          "grupos": {
+            "empresarios": -3,
+            "progressistas": 2
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "conflito_oposicao",
+    "nome": "Conflito com Oposição",
+    "tipo": "politica",
+    "descricao": "Oposição promete obstruir a pauta e atacar sua imagem.",
+    "opcoes": [
+      {
+        "id": "negociar",
+        "texto": "Negociar acordos pontuais",
+        "impactos": {
+          "grupos": {
+            "classe_media": 1
+          },
+          "integridadeRisco": 1
+        }
+      },
+      {
+        "id": "enfrentar",
+        "texto": "Enfrentar no plenário e nas redes",
+        "impactos": {
+          "grupos": {
+            "conservadores": 1,
+            "progressistas": 1
+          },
+          "integridadeRisco": 2
+        }
+      },
+      {
+        "id": "recuar",
+        "texto": "Recuar e evitar confronto",
+        "impactos": {
+          "grupos": {
+            "classe_media": -1
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "auditoria_saude",
+    "nome": "Auditoria na Saúde",
+    "tipo": "gestao",
+    "descricao": "Auditoria revela gargalos e compras emergenciais questionáveis.",
+    "opcoes": [
+      {
+        "id": "corrigir",
+        "texto": "Corrigir processos e publicar auditoria",
+        "impactos": {
+          "recursos": -40,
+          "grupos": {
+            "classe_media": 2,
+            "progressistas": 1
+          },
+          "integridadeNivel": 2,
+          "integridadeRisco": -2
+        }
+      },
+      {
+        "id": "abafar",
+        "texto": "Abafar para evitar crise política",
+        "impactos": {
+          "grupos": {
+            "classe_media": -2
+          },
+          "integridadeNivel": -2,
+          "integridadeRisco": 2
+        }
+      },
+      {
+        "id": "trocar_gestor",
+        "texto": "Trocar gestor e recomeçar",
+        "impactos": {
+          "grupos": {
+            "servidores": -1,
+            "classe_media": 1
+          },
+          "integridadeRisco": 1
+        }
+      }
+    ]
+  },
+  {
+    "id": "doacao_enchente",
+    "nome": "Doações e Solidariedade",
+    "tipo": "social",
+    "descricao": "ONGs pedem apoio logístico para distribuição de doações.",
+    "opcoes": [
+      {
+        "id": "apoiar_logistica",
+        "texto": "Apoiar logística e transparência",
+        "impactos": {
+          "recursos": -30,
+          "grupos": {
+            "pobres": 2,
+            "classe_media": 1
+          },
+          "integridadeNivel": 1
+        }
+      },
+      {
+        "id": "delegar",
+        "texto": "Delegar tudo às ONGs",
+        "impactos": {
+          "grupos": {
+            "pobres": 0,
+            "classe_media": -1
+          }
+        }
+      },
+      {
+        "id": "usar_midia",
+        "texto": "Transformar em ação de marketing",
+        "impactos": {
+          "grupos": {
+            "pobres": -1,
+            "classe_media": -1
+          },
+          "integridadeNivel": -1
+        }
+      }
+    ]
+  },
+  {
+    "id": "protesto_estudantil",
+    "nome": "Protesto Estudantil",
+    "tipo": "pressao_social",
+    "descricao": "Estudantes protestam por melhorias e merenda.",
+    "opcoes": [
+      {
+        "id": "atender",
+        "texto": "Atender e reforçar merenda",
+        "impactos": {
+          "recursos": -60,
+          "grupos": {
+            "progressistas": 2,
+            "pobres": 1
+          }
+        }
+      },
+      {
+        "id": "prometer",
+        "texto": "Prometer estudo e prazos",
+        "impactos": {
+          "grupos": {
+            "progressistas": -1,
+            "classe_media": 0
+          }
+        }
+      },
+      {
+        "id": "reprimir",
+        "texto": "Reprimir e dissolver",
+        "impactos": {
+          "grupos": {
+            "progressistas": -4,
+            "classe_media": -2,
+            "conservadores": 1
+          },
+          "integridadeRisco": 2
+        }
+      }
+    ]
+  },
+  {
+    "id": "escandalo_assessor",
+    "nome": "Assessor em Escândalo",
+    "tipo": "escandalo",
+    "descricao": "Um assessor próximo é citado em investigação.",
+    "opcoes": [
+      {
+        "id": "demitir",
+        "texto": "Demitir imediatamente e cooperar",
+        "impactos": {
+          "grupos": {
+            "classe_media": 2
+          },
+          "integridadeNivel": 2,
+          "integridadeRisco": -2
+        }
+      },
+      {
+        "id": "defender",
+        "texto": "Defender e dizer que é perseguição",
+        "impactos": {
+          "grupos": {
+            "classe_media": -2
+          },
+          "integridadeRisco": 2
+        }
+      },
+      {
+        "id": "afastar",
+        "texto": "Afastar temporariamente",
+        "impactos": {
+          "grupos": {
+            "classe_media": 1
+          },
+          "integridadeRisco": 1
+        }
+      }
     ]
   }
 ]

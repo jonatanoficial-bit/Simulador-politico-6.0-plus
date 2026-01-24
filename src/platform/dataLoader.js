@@ -9,16 +9,17 @@
 
   async function bootstrapData(){
     const [cargos, leis, eventos, carreira, regras, politicas, tecnicos, npcs, partidos, acoes] = await Promise.all([
-      fetchJson("/data/cargos.json").catch(()=>[]),
-      fetchJson("/data/leis.json").catch(()=>[]),
-      fetchJson("/data/eventos.json").catch(()=>[]),
-      fetchJson("/data/carreira.json").catch(()=>[]),
-      fetchJson("/data/regras_legislativo.json").catch(()=>({ casas:{} })),
-      fetchJson("/data/politicas.json").catch(()=>[]),
-      fetchJson("/data/tecnicos.json").catch(()=>[]),
-      fetchJson("/data/npcs.json").catch(()=>[]),
-      fetchJson("/data/partidos.json").catch(()=>[]),
-      fetchJson("/data/acoes.json").catch(()=>[])
+      // IMPORTANT: paths must be relative for GitHub Pages (repo is served from a subfolder)
+      fetchJson("data/cargos.json").catch(()=>[]),
+      fetchJson("data/leis.json").catch(()=>[]),
+      fetchJson("data/eventos.json").catch(()=>[]),
+      fetchJson("data/carreira.json").catch(()=>[]),
+      fetchJson("data/regras_legislativo.json").catch(()=>({ casas:{} })),
+      fetchJson("data/politicas.json").catch(()=>[]),
+      fetchJson("data/tecnicos.json").catch(()=>[]),
+      fetchJson("data/npcs.json").catch(()=>[]),
+      fetchJson("data/partidos.json").catch(()=>[]),
+      fetchJson("data/acoes.json").catch(()=>[])
     ]);
 
     const data = {

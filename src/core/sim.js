@@ -905,8 +905,42 @@
     // Bloco G: risco alto reduz score eleitoral (escândalos/rumores)
     const penalRisco = Math.round(clamp((state.integridade.risco - 40) * 0.15, 0, 12));
 
-    const random = Math.floor(Math.random() * 21) - 10;
-    const score = state.opiniao.geral + (state.eleicao.boostCampanha || 0) + bonusHonest - penalRisco + random;
+    // Base eleitoral por cargo (aproximação). Isso dá mais profundidade e faz
+    // certos grupos influenciarem mais dependendo do cargo disputado.
+    function baseEleitoralPorCargo(cargoId){
+      const o = state.opiniao || {};
+      const w = (m)=> (typeof m === "number" ? m : 0);
+      // pesos somam ~1
+      const pesos = {
+        vereador:         { pobres:0.22, classe_media:0.20, servidores:0.18, religiosos:0.10, conservadores:0.10, progressistas:0.10, empresarios:0.10 },
+        deputado:         { pobres:0.18, classe_media:0.18, empresarios:0.14, servidores:0.14, religiosos:0.12, progressistas:0.12, conservadores:0.12 },
+        deputado_federal: { pobres:0.18, classe_media:0.18, empresarios:0.14, servidores:0.14, religiosos:0.12, progressistas:0.12, conservadores:0.12 },
+        senador:          { classe_media:0.22, empresarios:0.18, ricos:0.12, servidores:0.12, religiosos:0.12, progressistas:0.12, conservadores:0.12 },
+        prefeito:         { pobres:0.22, classe_media:0.20, empresarios:0.14, servidores:0.14, religiosos:0.10, progressistas:0.10, conservadores:0.10 },
+        governador:       { pobres:0.18, classe_media:0.20, empresarios:0.16, servidores:0.14, religiosos:0.10, progressistas:0.11, conservadores:0.11 },
+        presidente:       { pobres:0.16, classe_media:0.22, empresarios:0.18, ricos:0.10, servidores:0.12, religiosos:0.11, conservadores:0.11 }
+      };
+      const p = pesos[cargoId] || { geral: 1 };
+      if (p.geral) return clamp(num(o.geral, 50), 0, 100);
+
+      let acc = 0;
+      for (const k of Object.keys(p)){
+        acc += clamp(num(o[k], 50), 0, 100) * w(p[k]);
+      }
+      return clamp(Math.round(acc), 0, 100);
+    }
+
+    const base = baseEleitoralPorCargo(cargoAlvoId);
+
+    // Governabilidade e reputação ajudam, especialmente no Legislativo.
+    const bonusGov = Math.round(clamp(state.governabilidade - 50, -25, 25) * 0.20);
+    const bonusRep = Math.round(clamp(state.reputacao_no_plenario - 50, -25, 25) * 0.18);
+
+    // Se for Executivo, a saúde fiscal (recursos) influencia a percepção.
+    const bonusRec = isExecutivo(cargoAlvoId) ? Math.round(clamp((state.recursos - 150) / 50, -6, 8)) : 0;
+
+    const random = Math.floor(Math.random() * 19) - 9; // -9..+9
+    const score = base + (state.eleicao.boostCampanha || 0) + bonusHonest - penalRisco + bonusGov + bonusRep + bonusRec + random;
     const venceu = score >= 55;
     const cargoOrigId = state.eleicao.cargoOrigId || state.cargoId;
 
@@ -1219,6 +1253,22 @@
         const drift = Math.floor(Math.random()*5) - 2;
         state.governabilidade = clamp(state.governabilidade + drift, 0, 100);
         state.coalizao.forca = state.governabilidade;
+      }
+    }
+
+    // Anti-"mês vazio": evita ficar muitos meses seguidos sem eventos.
+    if (typeof state.mesesSemEvento !== "number") state.mesesSemEvento = 0;
+    if (state.eventoAtual){
+      state.mesesSemEvento = 0;
+    } else {
+      state.mesesSemEvento += 1;
+      if (state.mesesSemEvento >= 2 && !state.emEleicao){
+        const ev = pickOne(data.eventos || []);
+        if (ev){
+          state.eventoAtual = ev;
+          state.mesesSemEvento = 0;
+          state.logs.push(mkLog(`Evento (garantido): ${ev.nome}`));
+        }
       }
     }
 

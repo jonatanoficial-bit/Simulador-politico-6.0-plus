@@ -1,0 +1,25 @@
+{
+  "casas": {
+    "camara_municipal": {
+      "nome": "Câmara Municipal",
+      "total": 21,
+      "quorum": 0.5,
+      "quorumMin": 11,
+      "maioria": "simples"
+    },
+    "camara_federal": {
+      "nome": "Câmara dos Deputados",
+      "total": 513,
+      "quorum": 0.5,
+      "quorumMin": 257,
+      "maioria": "simples"
+    },
+    "senado": {
+      "nome": "Senado Federal",
+      "total": 81,
+      "quorum": 0.5,
+      "quorumMin": 41,
+      "maioria": "simples"
+    }
+  }
+}

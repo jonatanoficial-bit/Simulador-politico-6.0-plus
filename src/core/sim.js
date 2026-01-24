@@ -793,6 +793,26 @@
     return state;
   }
 
+  // Força um evento quando o tutorial exige (passo 5/5) e não existe evento.
+  // Evita softlock por azar do RNG.
+  function ensureTutorialEvent(state, data){
+    ensureTutorial(state);
+
+    // tutorial passo 5/5 é índice 4
+    if (!state.tutorial?.ativo || state.tutorial?.concluido) return state;
+    if (state.tutorial.passo !== 4) return state;
+    if (state.emEleicao) return state;
+    if (state.eventoAtual) return state;
+
+    const pool = Array.isArray(data?.eventos) ? data.eventos : [];
+    const ev = pool.length ? pool[0] : null;
+    if (ev){
+      state.eventoAtual = ev;
+      state.logs.push(mkLog(`Evento (tutorial): ${ev.nome || ev.id}`));
+    }
+    return state;
+  }
+
   // ========= ELEIÇÕES =========
 
   function startElection(state, data){
@@ -1181,6 +1201,9 @@
     // Bloco G: gerar manchetes do mês
     gerarManchetesMensais(state, data, prevPop);
 
+    // Se o tutorial estiver no passo de eventos, garanta que exista um evento.
+    ensureTutorialEvent(state, data);
+
     if (state.mandatoMesesRestantes === 0){
       startElection(state, data);
       return state;
@@ -1249,6 +1272,7 @@
 
     // eventos
     resolveEvent,
+    ensureTutorialEvent,
 
     // eleições
     escolherCargoParaDisputar,

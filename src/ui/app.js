@@ -573,6 +573,7 @@
 
   function screenEventos(){
     const ev = state.eventoAtual;
+    const precisaEventoTutorial = !!(state?.tutorial?.ativo && !state?.tutorial?.concluido && state?.tutorial?.passo === 4);
     const box = card("Eventos", [
       ev ? el("div", { class:"stack" }, [
         el("div", { class:"big" }, [ev.nome || "Evento"]),
@@ -583,7 +584,12 @@
             onclick: () => { state = sim.resolveEvent(state, data, o.id); commit(); }
           }, [o.texto || o.id])
         ))
-      ]) : el("div", { class:"muted" }, ["Nenhum evento agora. Avance o mês."])
+      ]) : el("div", { class:"stack" }, [
+        el("div", { class:"muted" }, ["Nenhum evento agora."]),
+        precisaEventoTutorial
+          ? el("button", { class:"btn primary", onclick: () => { state = sim.ensureTutorialEvent(state, data); commit(); } }, ["Gerar evento do tutorial"])
+          : el("div", { class:"muted" }, ["Avance o mês para tentar gerar um evento."])
+      ])
     ]);
 
     return el("div", { class:"grid" }, [box]);
